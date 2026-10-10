@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Fitzza API
+  version: 1.0.0
+  description: |
+    Example API for managing workouts.
+
+    This specification is sample documentation. Replace the server URL and
+    operations with your real API before using the interactive client.
+servers:
+  - url: https://api.example.com/v1
+    description: Placeholder server (replace with your API URL)
+tags:
+  - name: Workouts
+    description: Create and browse workouts.
+security:
+  - bearerAuth: []
+paths:
+  /workouts:
+    get:
+      tags: [Workouts]
+      summary: List workouts
+      operationId: listWorkouts
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of workouts to return.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A list of workouts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workout'
+              example:
+                - id: workout_001
+                  name: Morning run
+                  durationMinutes: 30
+                  createdAt: '2026-10-10T00:00:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Workouts]
+      summary: Create a workout
+      operationId: createWorkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkout'
+            example:
+              name: Morning run
+              durationMinutes: 30
+      responses:
+        '201':
+          description: Workout created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+        '400':
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: durationMinutes must be greater than zero.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /workouts/{workoutId}:
+    get:
+      tags: [Workouts]
+      summary: Get a workout
+      operationId: getWorkout
+      parameters:
+        - name: workoutId
+          in: path
+          required: true
+          description: The workout's unique identifier.
+          schema:
+            type: string
+            example: workout_001
+      responses:
+        '200':
+          description: The requested workout.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Workout not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Workout not found.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CreateWorkout:
+      type: object
+      required: [name, durationMinutes]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: Morning run
+        durationMinutes:
+          type: integer
+          minimum: 1
+          example: 30
+    Workout:
+      allOf:
+        - $ref: '#/components/schemas/CreateWorkout'
+        - type: object
+          required: [id, createdAt]
+          properties:
+            id:
+              type: string
+              readOnly: true
+              example: workout_001
+            createdAt:
+              type: string
+              format: date-time
+              readOnly: true
+              example: '2026-10-10T00:00:00Z'
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: An error occurred.
+  responses:
+    Unauthorized:
+      description: Bearer token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Authentication required.
