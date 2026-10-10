@@ -51,7 +51,7 @@ tags:
   - name: 내부 찜
     description: 서비스 간 찜 소유 확인
 paths:
-  /users/signup:
+  /auth/signup:
     post:
       tags:
         - 회원
