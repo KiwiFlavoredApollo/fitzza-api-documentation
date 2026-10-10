@@ -8,6 +8,8 @@ info:
     구현 기준: [fitzza_msa_finalproject develop](https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/e9dea86d8611b70c33651c5c5b4c0bc296f55503), 커밋 e9dea86d8611b70c33651c5c5b4c0bc296f55503 (2026-10-10 확인).
     컨트롤러, DTO, 검증 로직 및 게이트웨이 설정을 기준으로 작성했습니다. 배포 서버에 대한 실호출 검증은 하지 않았습니다.
 
+    회원가입 계약은 README.md의 문의사항 Q1을 반영했습니다. 별도 중복 확인 API 없이 /auth/signup에서 이메일·닉네임 중복을 검사하고 409 응답의 code로 원인을 구분합니다. 이 변경은 기존 구현 기준 이후의 문서 계약입니다.
+
     이 문서의 공개 API 경로에서는 /api 및 /api/v1 접두어를 생략했습니다. 상품·카테고리·찜 API는 상품 서비스 직접 호출 서버로 문서화했습니다.
 
         게이트웨이는 Bearer JWT로 사용자 ID를 확인하고 X-User-Id를 서비스에 전달합니다. 외부 클라이언트는 X-User-Id를 직접 보내지 않고 Authorization: Bearer 헤더를 사용합니다. 공개 조회 API에도 토큰을 보낼 수 있으나 만료·무효 토큰을 보내면 401이 반환될 수 있습니다.
@@ -21,7 +23,7 @@ servers:
     description: 백엔드 개발환경
 tags:
   - name: 회원
-    description: 회원가입 및 중복 확인
+    description: 회원가입. 이메일·닉네임 중복은 가입 요청의 409 응답으로 확인합니다.
   - name: 인증
     description: 로그인, 토큰 재발급 및 로그아웃
   - name: 프로필
@@ -56,6 +58,7 @@ paths:
       tags:
         - 회원
       summary: 회원가입
+      description: 이메일·닉네임 중복을 가입 처리 중 검사합니다. 중복이면 409 응답의 code로 원인을 구분합니다.
       operationId: signup
       security: []
       requestBody:
@@ -80,77 +83,22 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
         "409":
-          description: 중복·투표 마감·동시 수정 충돌
+          description: 이미 사용 중인 이메일 또는 닉네임입니다. code로 중복 원인을 구분합니다.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserErrorResponse"
-      x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
-  /users/check-email:
-    get:
-      tags:
-        - 회원
-      summary: 이메일 중복 확인
-      operationId: checkEmail
-      security: []
-      parameters:
-        - name: email
-          in: query
-          required: true
-          schema:
-            type: string
-            format: email
-            maxLength: 255
-            pattern: ^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$
-            example: user@example.com
-      responses:
-        "200":
-          description: 요청 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserAvailabilityResponse"
-              example:
-                available: true
-        "400":
-          description: 요청 형식 또는 입력값 오류
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserErrorResponse"
-      x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
-  /users/check-nickname:
-    get:
-      tags:
-        - 회원
-      summary: 닉네임 중복 확인
-      operationId: checkNickname
-      security: []
-      parameters:
-        - name: nickname
-          in: query
-          required: true
-          schema:
-            type: string
-            minLength: 2
-            maxLength: 10
-            pattern: ^[가-힣A-Za-z0-9]{2,10}$
-            example: 핏짜유저
-      responses:
-        "200":
-          description: 요청 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserAvailabilityResponse"
-              example:
-                available: true
-        "400":
-          description: 요청 형식 또는 입력값 오류
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserErrorResponse"
+                $ref: "#/components/schemas/UserSignupConflictResponse"
+              examples:
+                duplicateEmail:
+                  summary: 이메일 중복
+                  value:
+                    code: DUPLICATE_EMAIL
+                    message: 이미 사용 중인 이메일입니다.
+                duplicateNickname:
+                  summary: 닉네임 중복
+                  value:
+                    code: DUPLICATE_NICKNAME
+                    message: 이미 사용 중인 닉네임입니다.
       x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
   /auth/signin:
     post:
@@ -2068,11 +2016,15 @@ components:
         - FORMAL
         - SPORTY
         - VINTAGE
-    UserAvailabilityResponse:
+    UserSignupConflictResponse:
       type: object
+      required: [code, message]
       properties:
-        available:
-          type: boolean
+        code:
+          type: string
+          enum: [DUPLICATE_EMAIL, DUPLICATE_NICKNAME]
+        message:
+          type: string
     UserErrorResponse:
       type: object
       properties:
