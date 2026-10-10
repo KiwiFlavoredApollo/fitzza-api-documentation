@@ -34,6 +34,10 @@ Fitzza 웹 어플리케이션이 사용하는 API의 문서입니다.
 
 프론트엔드에서는 LikesPage.jsx 라고 되어있습니다. WishlistPage.jsx 로 수정하겠습니다. 
 
+### `/status/xxx-service`
+
+`/xxx/status` 에서 `/status/xxx-service` 로 수정하였습니다. `/status/xxx-service` 를 사용하면 백엔드의 특정 "서비스"의 상태를 가져온다는 의미를 강하게 전달할 수 있을 것 같습니다.
+
 ## 문의사항
 
 ### Q1. 회원가입 시 아래 엔드포인트가 필요한가

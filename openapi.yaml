@@ -1584,7 +1584,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
       x-source: recommendation-service/app/main.py
-  /users/status:
+  /status/user-service:
     get:
       tags:
         - 서비스 상태
@@ -1603,7 +1603,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: user-service/src/main/java/com/fitzza/user/UserServiceApplication.java
-  /products/status:
+  /status/product-service:
     get:
       tags:
         - 서비스 상태
@@ -1622,7 +1622,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: product-service/src/main/java/com/fitzza/product/ProductServiceApplication.java
-  /orders/status:
+  /status/order-service:
     get:
       tags:
         - 서비스 상태
@@ -1641,7 +1641,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: order-service/src/main/java/com/fitzza/order/OrderServiceApplication.java
-  /community/status:
+  /status/community-service:
     get:
       tags:
         - 서비스 상태
@@ -1660,7 +1660,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: community-service/src/main/java/com/fitzza/community/CommunityServiceApplication.java
-  /reviews/status:
+  /status/review-service:
     get:
       tags:
         - 서비스 상태
@@ -1679,7 +1679,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: review-service/src/main/java/com/fitzza/review/ReviewServiceApplication.java
-  /notifications/status:
+  /status/notification-service:
     get:
       tags:
         - 서비스 상태
@@ -1698,7 +1698,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: notification-service/src/main/java/com/fitzza/notification/NotificationServiceApplication.java
-  /tryon/status:
+  /status/virtual-tryon-service:
     get:
       tags:
         - 서비스 상태
@@ -1717,7 +1717,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: virtual-tryon-service/app/main.py
-  /recommendations/status:
+  /status/recommendation-service:
     get:
       tags:
         - 서비스 상태
