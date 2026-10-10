@@ -1988,28 +1988,32 @@ paths:
                 $ref: "#/components/schemas/ProductApiErrorResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductOptionInternalController.java
-  /internal/wishlists/check:
+  /internal/users/{userId}/wishlists:
     get:
       tags:
         - 내부 찜
-      summary: 찜 소유 확인
-      operationId: checkInternalWishlist
+      summary: 사용자 찜 목록 필터 조회
+      description: |-
+        지정한 사용자의 찜 항목 중 productId에 일치하는 항목을 배열로 반환합니다. 일치하는 항목이 없으면 200과 빈 배열을 반환합니다.
+        productId는 백엔드의 itemId에 대응하며, 응답 항목은 기존 WishlistItemResponse 구조를 사용합니다.
+        현재 백엔드의 /check boolean 응답을 대체하는 문서 계약으로, 백엔드도 수정해야 합니다.
+      operationId: listInternalUserWishlists
       security: []
       parameters:
         - name: userId
-          in: query
+          in: path
           required: true
           schema:
             type: integer
             format: int64
             example: 1
-        - name: itemId
+        - name: productId
           in: query
           required: true
           schema:
             type: string
             minLength: 1
-            example: "1"
+            example: "42"
       servers:
         - url: http://localhost:8082
           description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
@@ -2019,7 +2023,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProductWishlistCheckResponse"
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductWishlistItemResponse"
+              examples:
+                matchingItems:
+                  summary: 조건에 맞는 찜 항목
+                  value:
+                    - wishlistId: 1
+                      itemId: "42"
+                      name: 오버핏 코튼 셔츠
+                      price: 39000
+                      imageUrl: https://example.com/products/42.jpg
+                      categoryL1: "001"
+                      createdAt: "2026-10-10T12:00:00"
+                noMatches:
+                  summary: 일치하는 항목 없음
+                  value: []
         "400":
           description: 요청 형식 또는 입력값 오류
           content:
@@ -3031,11 +3051,6 @@ components:
         - ON_SALE
         - SOLD_OUT
         - HIDDEN
-    ProductWishlistCheckResponse:
-      type: object
-      properties:
-        wishlisted:
-          type: boolean
     ProductWishlistCreateRequest:
       type: object
       required:

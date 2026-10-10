@@ -38,6 +38,12 @@ Fitzza 웹 어플리케이션이 사용하는 API의 문서입니다.
 
 `/xxx/status` 에서 `/status/xxx-service` 로 수정하였습니다. `/status/xxx-service` 를 사용하면 백엔드의 특정 "서비스"의 상태를 가져온다는 의미를 강하게 전달할 수 있을 것 같습니다.
 
+### `/internal/users/{userId}/wishlists`으로 변경
+
+`/internal/wishlists/check`에서 `/internal/users/{userId}/wishlists`으로 변경하였습니다. [WishlistController가 product-service에 있는 이유가 무엇인가요? - GitHub](https://github.com/duckfairy-wak/fitzza_msa_finalproject/issues/13)와 연관이 있는데, `/wishlists` 엔드포인트를 user-service에서 관리하는 것을 전제로 수정하였습니다. 
+
+엑세스토큰을 포함해서 요청을 보내는 것이 아니기 때문에 userId를 경로변수로 전달합니다. 
+
 ## 문의사항
 
 ### Q1. 회원가입 시 아래 엔드포인트가 필요한가
