@@ -8,14 +8,14 @@ info:
     구현 기준: [fitzza_msa_finalproject develop](https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/e9dea86d8611b70c33651c5c5b4c0bc296f55503), 커밋 e9dea86d8611b70c33651c5c5b4c0bc296f55503 (2026-10-10 확인).
     컨트롤러, DTO, 검증 로직 및 게이트웨이 설정을 기준으로 작성했습니다. 배포 서버에 대한 실호출 검증은 하지 않았습니다.
 
-    회원·커뮤니티 API의 전체 경로는 /api/v1으로 시작합니다. 상품·카테고리·찜 컨트롤러는 /api/products, /api/categories, /api/wishlists를 사용하며 현재 게이트웨이는 /api/v1/products/**만 라우팅합니다. 해당 API는 상품 서비스 직접 호출 서버로 문서화했습니다.
+    이 문서의 공개 API 경로에서는 /api 및 /api/v1 접두어를 생략했습니다. 상품·카테고리·찜 API는 상품 서비스 직접 호출 서버로 문서화했습니다.
 
         게이트웨이는 Bearer JWT로 사용자 ID를 확인하고 X-User-Id를 서비스에 전달합니다. 외부 클라이언트는 X-User-Id를 직접 보내지 않고 Authorization: Bearer 헤더를 사용합니다. 공개 조회 API에도 토큰을 보낼 수 있으나 만료·무효 토큰을 보내면 401이 반환될 수 있습니다.
 
     내부 API는 게이트웨이에 공개되지 않으며 서비스 주소로 직접 호출합니다. 내부 사용자 API는 X-Internal-Token이 필요합니다.
     주문·리뷰·알림 서비스에는 상태 조회만 구현되어 있습니다. 가상 피팅·추천은 골격 구현이며 실제 작업 큐/추론은 연결되지 않았습니다. Python API의 사용자·상품 ID는 UUID이며 Java 서비스의 정수 ID와 형식이 다릅니다.
 servers:
-  - url: https://api.fitzza.duckdns.org
+  - url: https://api.fitzza.duckdns.org/v1
     description: 기존 문서의 운영 도메인. 배포·프록시 경로는 확인되지 않았습니다.
   - url: http://localhost:8080
     description: 로컬 게이트웨이
@@ -51,7 +51,7 @@ tags:
   - name: 내부 찜
     description: 서비스 간 찜 소유 확인
 paths:
-  /api/v1/users/signup:
+  /users/signup:
     post:
       tags:
         - 회원
@@ -86,7 +86,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
-  /api/v1/users/check-email:
+  /users/check-email:
     get:
       tags:
         - 회원
@@ -119,7 +119,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
-  /api/v1/users/check-nickname:
+  /users/check-nickname:
     get:
       tags:
         - 회원
@@ -152,7 +152,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
-  /api/v1/auth/login:
+  /auth/login:
     post:
       tags:
         - 인증
@@ -186,7 +186,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
-  /api/v1/auth/reissue:
+  /auth/reissue:
     post:
       tags:
         - 인증
@@ -221,7 +221,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
-  /api/v1/auth/logout:
+  /auth/logout:
     post:
       tags:
         - 인증
@@ -248,7 +248,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
-  /api/v1/users/profile/options:
+  /users/profile/options:
     get:
       tags:
         - 프로필
@@ -263,7 +263,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserProfileOptionsResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/ProfileController.java
-  /api/v1/users/me:
+  /users/me:
     get:
       tags:
         - 프로필
@@ -297,7 +297,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: user-service/src/main/java/com/fitzza/user/controller/ProfileController.java
-  /api/v1/users/me/body:
+  /users/me/body:
     patch:
       tags:
         - 프로필
@@ -343,7 +343,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: user-service/src/main/java/com/fitzza/user/controller/ProfileController.java
-  /api/products:
+  /products:
     get:
       tags:
         - 상품
@@ -447,7 +447,7 @@ paths:
                 $ref: "#/components/schemas/ProductApiErrorResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductController.java
-  /api/products/{productId}:
+  /products/{productId}:
     get:
       tags:
         - 상품
@@ -486,7 +486,7 @@ paths:
                 $ref: "#/components/schemas/ProductApiErrorResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductController.java
-  /api/categories:
+  /categories:
     get:
       tags:
         - 카테고리
@@ -507,7 +507,7 @@ paths:
                   $ref: "#/components/schemas/ProductCategoryResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/CategoryController.java
-  /api/wishlists:
+  /wishlists:
     get:
       tags:
         - 찜
@@ -640,7 +640,7 @@ paths:
                 $ref: "#/components/schemas/ProductApiErrorResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/wishlist/controller/WishlistController.java
-  /api/v1/community/posts:
+  /community/posts:
     get:
       tags:
         - 게시글
@@ -736,7 +736,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
-  /api/v1/community/posts/{postId}:
+  /community/posts/{postId}:
     get:
       tags:
         - 게시글
@@ -904,7 +904,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
-  /api/v1/community/posts/{postId}/likes:
+  /community/posts/{postId}/likes:
     post:
       tags:
         - 게시글
@@ -999,7 +999,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
-  /api/v1/community/comments/{commentId}/likes:
+  /community/comments/{commentId}/likes:
     post:
       tags:
         - 댓글
@@ -1094,7 +1094,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
-  /api/v1/community/posts/{postId}/comments:
+  /community/posts/{postId}/comments:
     get:
       tags:
         - 댓글
@@ -1200,7 +1200,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
-  /api/v1/community/comments/{commentId}:
+  /community/comments/{commentId}:
     patch:
       tags:
         - 댓글
@@ -1317,7 +1317,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
-  /api/v1/community/posts/vote:
+  /community/posts/vote:
     post:
       tags:
         - 투표
@@ -1359,7 +1359,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/VoteController.java
-  /api/v1/community/posts/{postId}/votes:
+  /community/posts/{postId}/votes:
     post:
       tags:
         - 투표
@@ -1470,7 +1470,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/VoteController.java
-  /api/v1/community/posts/{postId}/votes/close:
+  /community/posts/{postId}/votes/close:
     post:
       tags:
         - 투표
@@ -1525,7 +1525,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GatewayError"
       x-source: community-service/src/main/java/com/fitzza/community/controller/VoteController.java
-  /api/v1/tryon/jobs:
+  /tryon/jobs:
     post:
       tags:
         - 가상 피팅
@@ -1553,7 +1553,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
       x-source: virtual-tryon-service/app/main.py
-  /api/v1/recommendations:
+  /recommendations:
     post:
       tags:
         - 추천
@@ -1584,7 +1584,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
       x-source: recommendation-service/app/main.py
-  /api/v1/users/status:
+  /users/status:
     get:
       tags:
         - 서비스 상태
@@ -1603,7 +1603,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: user-service/src/main/java/com/fitzza/user/UserServiceApplication.java
-  /api/v1/products/status:
+  /products/status:
     get:
       tags:
         - 서비스 상태
@@ -1622,7 +1622,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: product-service/src/main/java/com/fitzza/product/ProductServiceApplication.java
-  /api/v1/orders/status:
+  /orders/status:
     get:
       tags:
         - 서비스 상태
@@ -1641,7 +1641,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: order-service/src/main/java/com/fitzza/order/OrderServiceApplication.java
-  /api/v1/community/status:
+  /community/status:
     get:
       tags:
         - 서비스 상태
@@ -1660,7 +1660,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: community-service/src/main/java/com/fitzza/community/CommunityServiceApplication.java
-  /api/v1/reviews/status:
+  /reviews/status:
     get:
       tags:
         - 서비스 상태
@@ -1679,7 +1679,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: review-service/src/main/java/com/fitzza/review/ReviewServiceApplication.java
-  /api/v1/notifications/status:
+  /notifications/status:
     get:
       tags:
         - 서비스 상태
@@ -1698,7 +1698,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: notification-service/src/main/java/com/fitzza/notification/NotificationServiceApplication.java
-  /api/v1/tryon/status:
+  /tryon/status:
     get:
       tags:
         - 서비스 상태
@@ -1717,7 +1717,7 @@ paths:
                 status: UP
                 timestamp: 2026-10-10T00:00:00Z
       x-source: virtual-tryon-service/app/main.py
-  /api/v1/recommendations/status:
+  /recommendations/status:
     get:
       tags:
         - 서비스 상태
@@ -2754,7 +2754,7 @@ components:
             $ref: "#/components/schemas/ProductProductOptionCreateRequest"
           minItems: 1
           maxItems: 100
-      description: 카테고리 코드는 GET /api/categories에서 확인합니다. subcategory를 지정하려면 categoryL2가 필요합니다. 현재 컨트롤러에는 관리자 권한 검사가 없습니다.
+      description: 카테고리 코드는 GET /categories에서 확인합니다. subcategory를 지정하려면 categoryL2가 필요합니다. 현재 컨트롤러에는 관리자 권한 검사가 없습니다.
       example:
         brandId: 1
         productName: 오버핏 코튼 셔츠
