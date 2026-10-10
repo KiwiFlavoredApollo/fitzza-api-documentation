@@ -152,12 +152,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
-  /auth/login:
+  /auth/signin:
     post:
       tags:
         - 인증
       summary: 로그인
-      operationId: login
+      operationId: signin
       description: 성공 시 액세스 토큰, 리프레시 토큰, 사용자 ID 및 닉네임을 반환합니다.
       security: []
       requestBody:
@@ -221,12 +221,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
-  /auth/logout:
+  /auth/signout:
     post:
       tags:
         - 인증
       summary: 로그아웃
-      operationId: logout
+      operationId: signout
       description: "리프레시 토큰이 필수입니다. Authorization: Bearer 헤더를 선택적으로 함께 보내면 해당 액세스 토큰도 블랙리스트에 등록합니다. 이미 폐기되었거나 알 수 없는
         리프레시 토큰으로 재요청해도 성공합니다. 성공 응답은 200이며 본문이 없습니다."
       security:
