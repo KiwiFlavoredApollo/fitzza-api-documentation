@@ -141,3 +141,7 @@ REST API의 엔드포인트는 원칙적으로 서버의 자원을 가리키고 
 ### Q8. review-service가 따로 있는 이유는 무엇인가
 
 `/reviews` 엔드포인트가 상품에 대한 리뷰를 불러오는 것이라면 product-service에서 관리하면 될 것 같다고 생각했습니다. 별도 서비스로 분리한 이유가 있는지 궁금합니다.
+
+### Q8. `/internal/options` vs `/internal/product-options`
+
+두 엔드포인트의 차이점이 무엇인지 궁금합니다.
