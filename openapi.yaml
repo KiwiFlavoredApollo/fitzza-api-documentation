@@ -2,186 +2,3359 @@ openapi: 3.0.3
 info:
   title: Fitzza API
   version: 1.0.0
-  description: |
-    Fitzza 웹 어플리케이션이 사용하는 API 문서입니다.
+  description: |-
+    Fitzza 웹 애플리케이션이 사용하는 API 문서입니다.
+
+    구현 기준: [fitzza_msa_finalproject develop](https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/e9dea86d8611b70c33651c5c5b4c0bc296f55503), 커밋 e9dea86d8611b70c33651c5c5b4c0bc296f55503 (2026-10-10 확인).
+    컨트롤러, DTO, 검증 로직 및 게이트웨이 설정을 기준으로 작성했습니다. 배포 서버에 대한 실호출 검증은 하지 않았습니다.
+
+    회원·커뮤니티 API의 전체 경로는 /api/v1으로 시작합니다. 상품·카테고리·찜 컨트롤러는 /api/products, /api/categories, /api/wishlists를 사용하며 현재 게이트웨이는 /api/v1/products/**만 라우팅합니다. 해당 API는 상품 서비스 직접 호출 서버로 문서화했습니다.
+
+        게이트웨이는 Bearer JWT로 사용자 ID를 확인하고 X-User-Id를 서비스에 전달합니다. 외부 클라이언트는 X-User-Id를 직접 보내지 않고 Authorization: Bearer 헤더를 사용합니다. 공개 조회 API에도 토큰을 보낼 수 있으나 만료·무효 토큰을 보내면 401이 반환될 수 있습니다.
+
+    내부 API는 게이트웨이에 공개되지 않으며 서비스 주소로 직접 호출합니다. 내부 사용자 API는 X-Internal-Token이 필요합니다.
+    주문·리뷰·알림 서비스에는 상태 조회만 구현되어 있습니다. 가상 피팅·추천은 골격 구현이며 실제 작업 큐/추론은 연결되지 않았습니다. Python API의 사용자·상품 ID는 UUID이며 Java 서비스의 정수 ID와 형식이 다릅니다.
 servers:
-  - url: https://api.fitzza.duckdns.org/v1
+  - url: https://api.fitzza.duckdns.org
+    description: 기존 문서의 운영 도메인. 배포·프록시 경로는 확인되지 않았습니다.
+  - url: http://localhost:8080
+    description: 로컬 게이트웨이
 tags:
-  - name: Fitzza
-    description: 핏하게 입자
-security:
-  - bearerAuth: [ ]
+  - name: 회원
+    description: 회원가입 및 중복 확인
+  - name: 인증
+    description: 로그인, 토큰 재발급 및 로그아웃
+  - name: 프로필
+    description: 내 프로필 및 신체 정보
+  - name: 상품
+    description: 상품 조회 및 등록. 상품 서비스 직접 호출
+  - name: 카테고리
+    description: 카테고리 트리
+  - name: 찜
+    description: 찜 목록 및 추가·해제. 상품 서비스 직접 호출
+  - name: 게시글
+    description: 커뮤니티 게시글 및 좋아요
+  - name: 댓글
+    description: 댓글·답글 및 좋아요
+  - name: 투표
+    description: 투표 게시글 및 결과
+  - name: 가상 피팅
+    description: 현재 작업 접수 골격만 구현
+  - name: 추천
+    description: 현재 빈 추천 결과를 반환하는 골격 구현
+  - name: 서비스 상태
+    description: 서비스별 상태 조회
+  - name: 내부 사용자
+    description: 서비스 간 호출. X-Internal-Token 필요
+  - name: 내부 상품
+    description: 서비스 간 상품·옵션 조회
+  - name: 내부 찜
+    description: 서비스 간 찜 소유 확인
 paths:
-  /auth/signup:
+  /api/v1/users/signup:
     post:
+      tags:
+        - 회원
       summary: 회원가입
-      responses:
-        '200':
-          description: 회원가입
-          content:
-            application/json:
-              schema:
-                type: object
-              example: { }
-  /auth/signin:
-    post:
-      summary: 로그인
-      responses:
-        '200':
-          description: 로그인
-          content:
-            application/json:
-              schema:
-                type: object
-              example: { }
-  /auth/signout:
-    post:
-      summary: 로그아웃
-      responses:
-        '200':
-          description: 로그아웃
-          content:
-            application/json:
-              schema:
-                type: object
-              example: { }
-  /workouts:
-    get:
-      tags: [ Workouts ]
-      summary: List workouts
-      operationId: listWorkouts
-      parameters:
-        - name: limit
-          in: query
-          description: Maximum number of workouts to return.
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        '200':
-          description: A list of workouts.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Workout'
-              example:
-                - id: workout_001
-                  name: Morning run
-                  durationMinutes: 30
-                  createdAt: '2026-10-10T00:00:00Z'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-    post:
-      tags: [ Workouts ]
-      summary: Create a workout
-      operationId: createWorkout
+      operationId: signup
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateWorkout'
-            example:
-              name: Morning run
-              durationMinutes: 30
+              $ref: "#/components/schemas/UserSignupRequest"
       responses:
-        '201':
-          description: Workout created.
+        "201":
+          description: 요청 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Workout'
-        '400':
-          description: Invalid request body.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/UserSignupResponse"
               example:
-                message: durationMinutes must be greater than zero.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /workouts/{workoutId}:
+                userId: 1
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "409":
+          description: 중복·투표 마감·동시 수정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
+  /api/v1/users/check-email:
     get:
-      tags: [ Workouts ]
-      summary: Get a workout
-      operationId: getWorkout
+      tags:
+        - 회원
+      summary: 이메일 중복 확인
+      operationId: checkEmail
+      security: []
       parameters:
-        - name: workoutId
-          in: path
+        - name: email
+          in: query
           required: true
-          description: The workout's unique identifier.
           schema:
             type: string
-            example: workout_001
+            format: email
+            maxLength: 255
+            pattern: ^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$
+            example: user@example.com
       responses:
-        '200':
-          description: The requested workout.
+        "200":
+          description: 요청 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Workout'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          description: Workout not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/UserAvailabilityResponse"
               example:
-                message: Workout not found.
+                available: true
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
+  /api/v1/users/check-nickname:
+    get:
+      tags:
+        - 회원
+      summary: 닉네임 중복 확인
+      operationId: checkNickname
+      security: []
+      parameters:
+        - name: nickname
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 10
+            pattern: ^[가-힣A-Za-z0-9]{2,10}$
+            example: 핏짜유저
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAvailabilityResponse"
+              example:
+                available: true
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
+  /api/v1/auth/login:
+    post:
+      tags:
+        - 인증
+      summary: 로그인
+      operationId: login
+      description: 성공 시 액세스 토큰, 리프레시 토큰, 사용자 ID 및 닉네임을 반환합니다.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLoginRequest"
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserLoginResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
+  /api/v1/auth/reissue:
+    post:
+      tags:
+        - 인증
+      summary: 토큰 재발급
+      operationId: reissueTokens
+      description: 리프레시 토큰을 한 번 소비하고 새 토큰 쌍을 발급합니다. 사용한 리프레시 토큰은 다시 사용할 수 없습니다. Authorization 헤더의 만료된 액세스 토큰은
+        게이트웨이에서 검증하지 않습니다.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRefreshTokenRequest"
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTokenResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - 인증
+      summary: 로그아웃
+      operationId: logout
+      description: "리프레시 토큰이 필수입니다. Authorization: Bearer 헤더를 선택적으로 함께 보내면 해당 액세스 토큰도 블랙리스트에 등록합니다. 이미 폐기되었거나 알 수 없는
+        리프레시 토큰으로 재요청해도 성공합니다. 성공 응답은 200이며 본문이 없습니다."
+      security:
+        - {}
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRefreshTokenRequest"
+      responses:
+        "200":
+          description: 요청 성공. 응답 본문 없음.
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
+  /api/v1/users/profile/options:
+    get:
+      tags:
+        - 프로필
+      summary: 프로필 선택지 조회
+      operationId: getProfileOptions
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileOptionsResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/ProfileController.java
+  /api/v1/users/me:
+    get:
+      tags:
+        - 프로필
+      summary: 내 프로필 조회
+      operationId: getMyProfile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserMyProfileResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/ProfileController.java
+  /api/v1/users/me/body:
+    patch:
+      tags:
+        - 프로필
+      summary: 내 신체 정보 수정
+      operationId: updateMyBody
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserBodyUpdate"
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserUserBodyResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/ProfileController.java
+  /api/products:
+    get:
+      tags:
+        - 상품
+      summary: 상품 목록 조회
+      operationId: listProducts
+      description: HIDDEN 상품을 제외하고 카테고리 코드와 정렬 기준으로 조회합니다. 현재 게이트웨이 경로와 불일치하므로 상품 서비스를 직접 호출합니다.
+      security: []
+      parameters:
+        - name: categoryL1
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: categoryL2
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: subcategory
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - LATEST
+              - PRICE_ASC
+              - PRICE_DESC
+            default: LATEST
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductPage"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductController.java
+    post:
+      tags:
+        - 상품
+      summary: 상품 등록
+      operationId: createProduct
+      description: 상품과 옵션을 함께 등록합니다. 현재 컨트롤러에는 인증·관리자 권한 검사가 없습니다.
+      security: []
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductProductCreateRequest"
+      responses:
+        "201":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductProductDetailResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductController.java
+  /api/products/{productId}:
+    get:
+      tags:
+        - 상품
+      summary: 상품 상세 조회
+      operationId: getProduct
+      security: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductProductDetailResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductController.java
+  /api/categories:
+    get:
+      tags:
+        - 카테고리
+      summary: 카테고리 트리 조회
+      operationId: listCategories
+      security: []
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductCategoryResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/CategoryController.java
+  /api/wishlists:
+    get:
+      tags:
+        - 찜
+      summary: 찜 목록 조회
+      operationId: listWishlists
+      description: 사용자의 찜 상품을 최근 순으로 조회합니다. 현재 게이트웨이에 경로가 없습니다.
+      security: []
+      parameters:
+        - name: X-User-Id
+          in: header
+          required: true
+          description: 상품 서비스 직접 호출 시 필요한 사용자 ID. 실제 배포에서는 신뢰할 수 있는 게이트웨이에서 주입해야 합니다.
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistPage"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/wishlist/controller/WishlistController.java
+    post:
+      tags:
+        - 찜
+      summary: 찜 추가
+      operationId: addWishlist
+      description: 이미 찜한 상품이면 기존 항목을 반환합니다. 성공 응답은 200입니다.
+      security: []
+      parameters:
+        - name: X-User-Id
+          in: header
+          required: true
+          description: 상품 서비스 직접 호출 시 필요한 사용자 ID. 실제 배포에서는 신뢰할 수 있는 게이트웨이에서 주입해야 합니다.
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductWishlistCreateRequest"
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductWishlistResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/wishlist/controller/WishlistController.java
+    delete:
+      tags:
+        - 찜
+      summary: 찜 해제
+      operationId: removeWishlist
+      description: 항목이 없어도 204를 반환합니다.
+      security: []
+      parameters:
+        - name: X-User-Id
+          in: header
+          required: true
+          description: 상품 서비스 직접 호출 시 필요한 사용자 ID. 실제 배포에서는 신뢰할 수 있는 게이트웨이에서 주입해야 합니다.
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: itemId
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            example: "1"
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "204":
+          description: 요청 성공. 응답 본문 없음.
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/wishlist/controller/WishlistController.java
+  /api/v1/community/posts:
+    get:
+      tags:
+        - 게시글
+      summary: 게시글 피드 조회
+      operationId: listPosts
+      description: 최신 순으로 조회합니다. 음수 page는 0, size는 1~50 범위로 보정됩니다.
+      security: []
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - FASHION
+              - COORDI_QUESTION
+              - DAILY
+        - name: postType
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - NORMAL
+              - VOTE
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPostPageResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
+    post:
+      tags:
+        - 게시글
+      summary: 일반 게시글 작성
+      operationId: createPost
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityPostCreateRequest"
+      responses:
+        "201":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPostCreatedResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
+  /api/v1/community/posts/{postId}:
+    get:
+      tags:
+        - 게시글
+      summary: 게시글 상세 조회
+      operationId: getPost
+      description: 비로그인 조회 가능. 로그인 사용자에게 liked 상태를 포함하며 조회수가 증가합니다.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPostDetailResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: "게이트웨이: TOKEN_EXPIRED / INVALID_TOKEN. 사용자 경로의 인증 실패는 WWW-Authenticate: Bearer 헤더와 빈 본문으로 반환될 수도
+            있습니다."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
+    patch:
+      tags:
+        - 게시글
+      summary: 게시글 수정
+      operationId: updatePost
+      description: 작성자만 수정 가능합니다. 성공은 200이며 본문이 없습니다.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityPostUpdateRequest"
+      responses:
+        "200":
+          description: 요청 성공. 응답 본문 없음.
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "403":
+          description: 작성자 권한 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "409":
+          description: 중복·투표 마감·동시 수정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
+    delete:
+      tags:
+        - 게시글
+      summary: 게시글 삭제
+      operationId: deletePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "204":
+          description: 요청 성공. 응답 본문 없음.
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "403":
+          description: 작성자 권한 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "409":
+          description: 중복·투표 마감·동시 수정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
+  /api/v1/community/posts/{postId}/likes:
+    post:
+      tags:
+        - 게시글
+      summary: 게시글 좋아요 추가
+      operationId: likePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityLikeCountResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
+    delete:
+      tags:
+        - 게시글
+      summary: 게시글 좋아요 해제
+      operationId: unlikePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityLikeCountResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/PostController.java
+  /api/v1/community/comments/{commentId}/likes:
+    post:
+      tags:
+        - 댓글
+      summary: 댓글 좋아요 추가
+      operationId: likeComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityLikeCountResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
+    delete:
+      tags:
+        - 댓글
+      summary: 댓글 좋아요 해제
+      operationId: unlikeComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityLikeCountResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
+  /api/v1/community/posts/{postId}/comments:
+    get:
+      tags:
+        - 댓글
+      summary: 댓글 및 답글 조회
+      operationId: listComments
+      description: 답글은 replies에 포함됩니다. 답글이 남은 삭제 댓글은 isDeleted=true, author=null이며 안내 문구로 반환됩니다.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommunityCommentResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: "게이트웨이: TOKEN_EXPIRED / INVALID_TOKEN. 사용자 경로의 인증 실패는 WWW-Authenticate: Bearer 헤더와 빈 본문으로 반환될 수도
+            있습니다."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
+    post:
+      tags:
+        - 댓글
+      summary: 댓글 또는 답글 작성
+      operationId: createComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCommentCreateRequest"
+      responses:
+        "201":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCommentCreatedResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
+  /api/v1/community/comments/{commentId}:
+    patch:
+      tags:
+        - 댓글
+      summary: 댓글 수정
+      operationId: updateComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCommentUpdateRequest"
+      responses:
+        "200":
+          description: 요청 성공. 응답 본문 없음.
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "403":
+          description: 작성자 권한 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "409":
+          description: 중복·투표 마감·동시 수정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
+    delete:
+      tags:
+        - 댓글
+      summary: 댓글 삭제
+      operationId: deleteComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "204":
+          description: 요청 성공. 응답 본문 없음.
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "403":
+          description: 작성자 권한 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "409":
+          description: 중복·투표 마감·동시 수정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/CommentController.java
+  /api/v1/community/posts/vote:
+    post:
+      tags:
+        - 투표
+      summary: 투표 게시글 작성
+      operationId: createVotePost
+      description: 선택지를 2~4개 등록합니다. 현재 UnverifiedVoteItemGateway는 대상 상품·코디의 소유 여부를 검증하지 않으며 요청 이미지 URL만 사용합니다. 선택지
+        name·price는 null입니다.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityVotePostCreateRequest"
+      responses:
+        "201":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityVotePostCreatedResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/VoteController.java
+  /api/v1/community/posts/{postId}/votes:
+    post:
+      tags:
+        - 투표
+      summary: 투표 참여
+      operationId: castVote
+      description: 이미 투표한 사용자는 처음 고른 선택지를 반환합니다(마감 후 재요청 포함). 처음 투표하는 요청은 마감 시 409입니다.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityVoteRequest"
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityVoteCastResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "409":
+          description: 중복·투표 마감·동시 수정 충돌
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/VoteController.java
+    get:
+      tags:
+        - 투표
+      summary: 투표 결과 조회
+      operationId: getVoteResults
+      description: 비로그인·미투표 사용자의 myVoteOptionId는 null입니다.
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityVoteResultResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: "게이트웨이: TOKEN_EXPIRED / INVALID_TOKEN. 사용자 경로의 인증 실패는 WWW-Authenticate: Bearer 헤더와 빈 본문으로 반환될 수도
+            있습니다."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/VoteController.java
+  /api/v1/community/posts/{postId}/votes/close:
+    post:
+      tags:
+        - 투표
+      summary: 투표 조기 마감
+      operationId: closeVote
+      description: 작성자만 마감할 수 있습니다. 이미 마감된 경우에도 closed=true를 반환합니다.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityVoteClosedResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "403":
+          description: 작성자 권한 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityErrorResponse"
+        "503":
+          description: 인증 상태 확인 불가 (AUTH_UNAVAILABLE)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      x-source: community-service/src/main/java/com/fitzza/community/controller/VoteController.java
+  /api/v1/tryon/jobs:
+    post:
+      tags:
+        - 가상 피팅
+      summary: 가상 피팅 작업 접수
+      operationId: createTryOnJob
+      description: "골격 구현: 새 job_id와 QUEUED 상태만 반환합니다. SQS/이미지 워커 연동 및 작업 결과 조회는 구현되지 않았습니다."
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TryOnRequest"
+      responses:
+        "202":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TryOnJob"
+        "422":
+          description: 요청 데이터 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+      x-source: virtual-tryon-service/app/main.py
+  /api/v1/recommendations:
+    post:
+      tags:
+        - 추천
+      summary: 추천 요청
+      operationId: getRecommendations
+      description: "골격 구현: 요청 user_id를 그대로 반환하며 product_ids는 항상 빈 배열입니다. Qdrant/추론 연동은 구현되지 않았습니다."
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecommendationRequest"
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationResponse"
+              example:
+                user_id: 123e4567-e89b-12d3-a456-426614174000
+                product_ids: []
+        "422":
+          description: 요청 데이터 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+      x-source: recommendation-service/app/main.py
+  /api/v1/users/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: user 서비스 상태 조회
+      operationId: userStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: user-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: user-service/src/main/java/com/fitzza/user/UserServiceApplication.java
+  /api/v1/products/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: product 서비스 상태 조회
+      operationId: productStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: product-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: product-service/src/main/java/com/fitzza/product/ProductServiceApplication.java
+  /api/v1/orders/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: order 서비스 상태 조회
+      operationId: orderStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: order-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: order-service/src/main/java/com/fitzza/order/OrderServiceApplication.java
+  /api/v1/community/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: community 서비스 상태 조회
+      operationId: communityStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: community-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: community-service/src/main/java/com/fitzza/community/CommunityServiceApplication.java
+  /api/v1/reviews/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: review 서비스 상태 조회
+      operationId: reviewStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: review-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: review-service/src/main/java/com/fitzza/review/ReviewServiceApplication.java
+  /api/v1/notifications/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: notification 서비스 상태 조회
+      operationId: notificationStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: notification-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: notification-service/src/main/java/com/fitzza/notification/NotificationServiceApplication.java
+  /api/v1/tryon/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: virtual-tryon 서비스 상태 조회
+      operationId: virtualtryonStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: virtual-tryon-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: virtual-tryon-service/app/main.py
+  /api/v1/recommendations/status:
+    get:
+      tags:
+        - 서비스 상태
+      summary: recommendation 서비스 상태 조회
+      operationId: recommendationStatus
+      security: []
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+              example:
+                service: recommendation-service
+                status: UP
+                timestamp: 2026-10-10T00:00:00Z
+      x-source: recommendation-service/app/main.py
+  /internal/users:
+    get:
+      tags:
+        - 내부 사용자
+      summary: 사용자 닉네임 일괄 조회
+      operationId: getInternalNicknames
+      description: 게이트웨이에 공개되지 않는 내부 호출입니다. 존재하지 않는 사용자 ID는 제외됩니다.
+      security:
+        - internalToken: []
+      parameters:
+        - name: userIds
+          in: query
+          required: true
+          description: 쉼표로 구분한 ID 또는 반복 쿼리 파라미터. 최대 100개.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+            minItems: 1
+            maxItems: 100
+      servers:
+        - url: http://localhost:8081
+          description: 사용자 서비스 내부 호출
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserNicknameResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/InternalUserController.java
+  /internal/users/{userId}/body:
+    get:
+      tags:
+        - 내부 사용자
+      summary: 입력된 신체 정보 조회
+      operationId: getInternalUserBody
+      description: 미입력 필드는 생략합니다. 내부 호출 토큰이 필요합니다.
+      security:
+        - internalToken: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      servers:
+        - url: http://localhost:8081
+          description: 사용자 서비스 내부 호출
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserFilledBody"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "401":
+          description: 인증 정보 누락·오류 또는 토큰 만료
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+        "404":
+          description: 대상을 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/InternalUserController.java
+  /internal/v1/products:
+    get:
+      tags:
+        - 내부 상품
+      summary: 상품 요약 일괄 조회
+      operationId: getInternalProducts
+      description: 서비스 간 직접 호출 API. 존재하지 않는 ID는 결과에서 제외됩니다.
+      security: []
+      parameters:
+        - name: productIds
+          in: query
+          required: true
+          description: 쉼표로 구분한 ID 또는 반복 쿼리 파라미터. 최대 100개.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+            minItems: 1
+            maxItems: 100
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductProductSummaryResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductInternalController.java
+  /internal/v1/products/measurements:
+    get:
+      tags:
+        - 내부 상품
+      summary: 상품 실측 일괄 조회
+      operationId: getInternalMeasurements
+      description: 서비스 간 직접 호출 API. 존재하지 않는 ID는 결과에서 제외됩니다.
+      security: []
+      parameters:
+        - name: productIds
+          in: query
+          required: true
+          description: 쉼표로 구분한 ID 또는 반복 쿼리 파라미터. 최대 100개.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+            minItems: 1
+            maxItems: 100
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductProductMeasurementResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductInternalController.java
+  /internal/v1/options:
+    get:
+      tags:
+        - 내부 상품
+      summary: 옵션 요약 일괄 조회
+      operationId: getInternalOptions
+      description: 서비스 간 직접 호출 API. 존재하지 않는 ID는 결과에서 제외됩니다.
+      security: []
+      parameters:
+        - name: optionIds
+          in: query
+          required: true
+          description: 쉼표로 구분한 ID 또는 반복 쿼리 파라미터. 최대 100개.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+            minItems: 1
+            maxItems: 100
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductOptionSummaryResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/OptionInternalController.java
+  /internal/product-options:
+    get:
+      tags:
+        - 내부 상품
+      summary: 주문용 상품 옵션 일괄 조회
+      operationId: getInternalProductOptions
+      description: 서비스 간 직접 호출 API. 존재하지 않는 ID는 결과에서 제외됩니다.
+      security: []
+      parameters:
+        - name: optionIds
+          in: query
+          required: true
+          description: 쉼표로 구분한 ID 또는 반복 쿼리 파라미터. 최대 100개.
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+            minItems: 1
+            maxItems: 100
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductProductOptionInternalResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductOptionInternalController.java
+  /internal/v1/wishlists/check:
+    get:
+      tags:
+        - 내부 찜
+      summary: 찜 소유 확인
+      operationId: checkInternalWishlist
+      security: []
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: itemId
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            example: "1"
+      servers:
+        - url: http://localhost:8082
+          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
+      responses:
+        "200":
+          description: 요청 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductWishlistCheckResponse"
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductApiErrorResponse"
+      x-gateway-routed: false
+      x-source: product-service/src/main/java/com/fitzza/product/wishlist/controller/WishlistInternalController.java
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    internalToken:
+      type: apiKey
+      in: header
+      name: X-Internal-Token
   schemas:
-    CreateWorkout:
+    UserStyleTag:
+      type: string
+      enum:
+        - CASUAL
+        - MINIMAL
+        - STREET
+        - FORMAL
+        - SPORTY
+        - VINTAGE
+    UserAvailabilityResponse:
       type: object
-      required: [ name, durationMinutes ]
       properties:
-        name:
+        available:
+          type: boolean
+    UserErrorResponse:
+      type: object
+      properties:
+        code:
           type: string
-          minLength: 1
-          example: Morning run
-        durationMinutes:
-          type: integer
-          minimum: 1
-          example: 30
-    Workout:
-      allOf:
-        - $ref: '#/components/schemas/CreateWorkout'
-        - type: object
-          required: [ id, createdAt ]
-          properties:
-            id:
-              type: string
-              readOnly: true
-              example: workout_001
-            createdAt:
-              type: string
-              format: date-time
-              readOnly: true
-              example: '2026-10-10T00:00:00Z'
-    Error:
-      type: object
-      required: [ message ]
-      properties:
         message:
           type: string
-          example: An error occurred.
-  responses:
-    Unauthorized:
-      description: Bearer token is missing or invalid.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            message: Authentication required.
+    UserLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          minLength: 1
+          example: user@example.com
+        password:
+          type: string
+          minLength: 1
+          example: Example123
+    UserLoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: "Authorization: Bearer 헤더로 전송하는 JWT."
+        refreshToken:
+          type: string
+          description: 재발급·로그아웃 요청 본문에 전송하는 토큰.
+        userId:
+          type: integer
+          format: int64
+        nickname:
+          type: string
+    UserMyProfileResponse:
+      type: object
+      properties:
+        email:
+          type: string
+        nickname:
+          type: string
+        body:
+          $ref: "#/components/schemas/UserUserBodyResponse"
+    UserNicknameResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        nickname:
+          type: string
+          nullable: true
+    UserOptionResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+    UserProfileOptionsResponse:
+      type: object
+      properties:
+        bodyTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserOptionResponse"
+        fits:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserOptionResponse"
+        styles:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserOptionResponse"
+    UserRefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          description: 로그인 또는 재발급 응답으로 받은 리프레시 토큰.
+    UserSignupRequest:
+      type: object
+      required:
+        - email
+        - password
+        - nickname
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          pattern: ^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$
+          example: user@example.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 24
+          pattern: ^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,24}$
+          description: 영문과 숫자를 모두 포함해야 하며 특수문자는 허용하지 않습니다.
+          example: Example123
+        nickname:
+          type: string
+          minLength: 2
+          maxLength: 10
+          pattern: ^[가-힣A-Za-z0-9]{2,10}$
+          example: 핏짜유저
+    UserSignupResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+    UserTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: "Authorization: Bearer 헤더로 전송하는 JWT."
+        refreshToken:
+          type: string
+          description: 재발급·로그아웃 요청 본문에 전송하는 토큰.
+    UserUserBodyResponse:
+      type: object
+      properties:
+        height:
+          type: number
+          nullable: true
+          minimum: 100
+          maximum: 250
+          description: 키(cm).
+          example: 175
+        weight:
+          type: number
+          nullable: true
+          minimum: 20
+          maximum: 300
+          description: 체중(kg).
+          example: 70
+        gender:
+          type: string
+          enum:
+            - W
+            - M
+            - null
+          nullable: true
+        bodyType:
+          type: string
+          enum:
+            - SLIM
+            - STANDARD
+            - MUSCULAR
+            - CHUBBY
+            - null
+          nullable: true
+        preferredFit:
+          type: string
+          enum:
+            - REGULAR
+            - RELAXED
+            - SLIM
+            - OVERSIZED
+            - CROPPED
+            - null
+          nullable: true
+        preferredStyles:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserStyleTag"
+        shoeSize:
+          type: integer
+          nullable: true
+          minimum: 150
+          maximum: 350
+          description: 신발 크기(mm).
+          example: 270
+    CommunityPostCategory:
+      type: string
+      enum:
+        - FASHION
+        - COORDI_QUESTION
+        - DAILY
+    CommunityPostType:
+      type: string
+      enum:
+        - NORMAL
+        - VOTE
+    CommunityVoteItemType:
+      type: string
+      enum:
+        - PRODUCT
+        - COMBO
+        - IMAGE
+    CommunityVoteOptionSource:
+      type: string
+      enum:
+        - AI_RECOMMEND
+        - WISHLIST
+        - UPLOAD
+    CommunityAuthorResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        nickname:
+          type: string
+          nullable: true
+    CommunityCommentCreatedResponse:
+      type: object
+      properties:
+        commentId:
+          type: integer
+          format: int64
+    CommunityCommentCreateRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: \S
+          example: 잘 어울려요!
+        parentCommentId:
+          type: integer
+          format: int64
+          example: 1
+          nullable: true
+          description: 답글이면 부모 댓글 ID. 최상위 댓글이면 생략합니다.
+    CommunityCommentResponse:
+      type: object
+      properties:
+        commentId:
+          type: integer
+          format: int64
+        content:
+          type: string
+        author:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/CommunityAuthorResponse"
+        likeCount:
+          type: integer
+          format: int64
+        liked:
+          type: boolean
+        isDeleted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        replies:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityCommentResponse"
+    CommunityCommentUpdateRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: \S
+    CommunityErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    CommunityLikeCountResponse:
+      type: object
+      properties:
+        likeCount:
+          type: integer
+          format: int64
+    CommunityPostCreatedResponse:
+      type: object
+      properties:
+        postId:
+          type: integer
+          format: int64
+    CommunityPostCreateRequest:
+      type: object
+      required:
+        - title
+        - content
+        - category
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: \S
+          example: 오늘의 코디
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          pattern: \S
+          example: 이 조합은 어떤가요?
+        category:
+          $ref: "#/components/schemas/CommunityPostCategory"
+        imageUrl:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: https://example.com/outfit.jpg
+    CommunityPostDetailResponse:
+      type: object
+      properties:
+        postId:
+          type: integer
+          format: int64
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          $ref: "#/components/schemas/CommunityPostCategory"
+        postType:
+          $ref: "#/components/schemas/CommunityPostType"
+        author:
+          $ref: "#/components/schemas/CommunityAuthorResponse"
+        imageUrl:
+          type: string
+          nullable: true
+        likeCount:
+          type: integer
+          format: int64
+        liked:
+          type: boolean
+        commentCount:
+          type: integer
+          format: int64
+        viewCount:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        voteEndAt:
+          type: string
+          format: date-time
+          nullable: true
+        voteClosed:
+          type: boolean
+        voteOptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityVoteOptionResponse"
+    CommunityPostPageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityPostSummaryResponse"
+        page:
+          type: integer
+          format: int32
+        totalPages:
+          type: integer
+          format: int32
+    CommunityPostSummaryResponse:
+      type: object
+      properties:
+        postId:
+          type: integer
+          format: int64
+        title:
+          type: string
+        category:
+          $ref: "#/components/schemas/CommunityPostCategory"
+        postType:
+          $ref: "#/components/schemas/CommunityPostType"
+        nickname:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        thumbnailUrl:
+          type: string
+          nullable: true
+        likeCount:
+          type: integer
+          format: int64
+        commentCount:
+          type: integer
+          format: int64
+    CommunityVoteCastResponse:
+      type: object
+      properties:
+        voteOptionId:
+          type: integer
+          format: int64
+    CommunityVoteClosedResponse:
+      type: object
+      properties:
+        closed:
+          type: boolean
+    CommunityVoteOptionRequest:
+      type: object
+      required:
+        - source
+        - itemType
+        - imageUrl
+      properties:
+        source:
+          $ref: "#/components/schemas/CommunityVoteOptionSource"
+        itemType:
+          $ref: "#/components/schemas/CommunityVoteItemType"
+        itemId:
+          type: string
+          maxLength: 100
+          nullable: true
+        imageUrl:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: \S
+          example: https://example.com/outfit-a.jpg
+      description: UPLOAD는 IMAGE와 함께 사용하며 itemId를 생략합니다. 다른 출처는 PRODUCT/COMBO 및 itemId가 필요합니다. 같은 종류·ID의 중복 선택지는
+        허용하지 않습니다.
+    CommunityVoteOptionResponse:
+      type: object
+      properties:
+        voteOptionId:
+          type: integer
+          format: int64
+        label:
+          type: string
+        source:
+          $ref: "#/components/schemas/CommunityVoteOptionSource"
+        itemType:
+          $ref: "#/components/schemas/CommunityVoteItemType"
+        itemId:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+        name:
+          type: string
+          nullable: true
+        price:
+          type: integer
+          format: int32
+          nullable: true
+    CommunityVoteOptionResult:
+      type: object
+      properties:
+        voteOptionId:
+          type: integer
+          format: int64
+        label:
+          type: string
+        count:
+          type: integer
+          format: int64
+        ratio:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: 득표 비율(0~1). 전체 득표가 없으면 0.
+    CommunityVotePostCreatedResponse:
+      type: object
+      properties:
+        postId:
+          type: integer
+          format: int64
+        voteEndAt:
+          type: string
+          format: date-time
+    CommunityVotePostCreateRequest:
+      type: object
+      required:
+        - title
+        - content
+        - category
+        - options
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: \S
+          example: 오늘의 코디
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          pattern: \S
+          example: 이 조합은 어떤가요?
+        category:
+          $ref: "#/components/schemas/CommunityPostCategory"
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityVoteOptionRequest"
+          minItems: 2
+          maxItems: 4
+      example:
+        title: 어떤 코디가 더 좋을까요?
+        content: 두 코디 중 골라주세요.
+        category: COORDI_QUESTION
+        options:
+          - source: UPLOAD
+            itemType: IMAGE
+            imageUrl: https://example.com/outfit-a.jpg
+          - source: UPLOAD
+            itemType: IMAGE
+            imageUrl: https://example.com/outfit-b.jpg
+    CommunityVoteRequest:
+      type: object
+      properties:
+        voteOptionId:
+          type: integer
+          format: int64
+      required:
+        - voteOptionId
+    CommunityVoteResultResponse:
+      type: object
+      properties:
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityVoteOptionResult"
+        total:
+          type: integer
+          format: int64
+        voteEndAt:
+          type: string
+          format: date-time
+        closed:
+          type: boolean
+        myVoteOptionId:
+          type: integer
+          format: int64
+          nullable: true
+    ProductApiErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        code:
+          type: string
+        message:
+          type: string
+    ProductCategoryResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+        name:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductCategoryResponse"
+    ProductOptionSummaryResponse:
+      type: object
+      properties:
+        optionId:
+          type: integer
+          format: int64
+        productId:
+          type: integer
+          format: int64
+        brandName:
+          type: string
+        productName:
+          type: string
+        color:
+          type: string
+        size:
+          type: string
+        price:
+          type: integer
+          format: int32
+        imageUrl:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProductProductStatus"
+    ProductProductCreateRequest:
+      type: object
+      required:
+        - brandId
+        - productName
+        - categoryL1
+        - price
+        - options
+      properties:
+        brandId:
+          type: integer
+          format: int64
+          example: 1
+        productName:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: \S
+        productNameEn:
+          type: string
+          maxLength: 200
+        styleNo:
+          type: string
+          maxLength: 100
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - UNISEX
+            - null
+          nullable: true
+        categoryL1:
+          type: string
+          pattern: ^[0-9]{1,20}$
+          example: "001"
+          description: 카테고리 이름이 아닌 숫자 문자열 코드.
+        categoryL2:
+          type: string
+          pattern: ^[0-9]{1,20}$
+          example: "001"
+          description: 카테고리 이름이 아닌 숫자 문자열 코드.
+          nullable: true
+        subcategory:
+          type: string
+          pattern: ^[0-9]{1,20}$
+          example: "001"
+          description: 카테고리 이름이 아닌 숫자 문자열 코드.
+          nullable: true
+        price:
+          type: integer
+          minimum: 1
+          example: 42000
+        normalPrice:
+          type: integer
+          minimum: 0
+        discountRate:
+          type: integer
+          minimum: 0
+          maximum: 100
+        material:
+          type: string
+          maxLength: 200
+        season:
+          type: string
+          enum:
+            - SPRING
+            - SUMMER
+            - FALL
+            - WINTER
+            - null
+          nullable: true
+        fitType:
+          type: string
+          enum:
+            - REGULAR
+            - RELAXED
+            - CROPPED
+            - SLIM
+            - OVERSIZED
+            - null
+          nullable: true
+        features:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        description:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 500
+            pattern: \S
+          maxItems: 30
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductProductOptionCreateRequest"
+          minItems: 1
+          maxItems: 100
+      description: 카테고리 코드는 GET /api/categories에서 확인합니다. subcategory를 지정하려면 categoryL2가 필요합니다. 현재 컨트롤러에는 관리자 권한 검사가 없습니다.
+      example:
+        brandId: 1
+        productName: 오버핏 코튼 셔츠
+        categoryL1: "001"
+        price: 42000
+        options:
+          - color: BLACK
+            size: M
+            additionalPrice: 0
+    ProductProductDetailOptionResponse:
+      type: object
+      properties:
+        optionId:
+          type: integer
+          format: int64
+        color:
+          type: string
+          nullable: true
+        size:
+          type: string
+          nullable: true
+        additionalPrice:
+          type: integer
+          format: int32
+        price:
+          type: integer
+          format: int32
+    ProductProductDetailResponse:
+      type: object
+      properties:
+        productId:
+          type: integer
+          format: int64
+        productName:
+          type: string
+        productNameEn:
+          type: string
+          nullable: true
+        styleNo:
+          type: string
+          nullable: true
+        brandId:
+          type: integer
+          format: int64
+        brandName:
+          type: string
+        brandNameEn:
+          type: string
+          nullable: true
+        categoryL1:
+          type: string
+        categoryL2:
+          type: string
+          nullable: true
+        subcategory:
+          type: string
+          nullable: true
+        categoryCode:
+          type: string
+        categoryL1Name:
+          type: string
+        categoryL2Name:
+          type: string
+          nullable: true
+        subcategoryName:
+          type: string
+          nullable: true
+        price:
+          type: integer
+          format: int32
+        normalPrice:
+          type: integer
+          format: int32
+          nullable: true
+        discountRate:
+          type: integer
+          format: int32
+          nullable: true
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - UNISEX
+            - null
+          nullable: true
+        season:
+          type: string
+          enum:
+            - SPRING
+            - SUMMER
+            - FALL
+            - WINTER
+            - null
+          nullable: true
+        material:
+          type: string
+          nullable: true
+        fitType:
+          type: string
+          enum:
+            - REGULAR
+            - RELAXED
+            - CROPPED
+            - SLIM
+            - OVERSIZED
+            - null
+          nullable: true
+        features:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        description:
+          type: string
+          nullable: true
+        thumbnailUrl:
+          type: string
+          nullable: true
+        images:
+          type: array
+          items:
+            type: string
+        sizeGuide:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ProductSizeGuideResponse"
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductProductDetailOptionResponse"
+        status:
+          $ref: "#/components/schemas/ProductProductStatus"
+        createdAt:
+          type: string
+          description: 시간대 오프셋 없는 ISO 8601 로컬 일시.
+          example: 2026-10-10T12:00:00
+        updatedAt:
+          type: string
+          description: 시간대 오프셋 없는 ISO 8601 로컬 일시.
+          example: 2026-10-10T12:00:00
+    ProductProductListResponse:
+      type: object
+      properties:
+        productId:
+          type: integer
+          format: int64
+        productName:
+          type: string
+        brandName:
+          type: string
+        price:
+          type: integer
+          format: int32
+        thumbnailUrl:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProductProductStatus"
+    ProductProductMeasurementResponse:
+      type: object
+      properties:
+        productId:
+          type: integer
+          format: int64
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductProductOptionResponse"
+    ProductProductOptionCreateRequest:
+      type: object
+      properties:
+        color:
+          type: string
+          maxLength: 100
+        size:
+          type: string
+          maxLength: 100
+        additionalPrice:
+          type: integer
+          minimum: 0
+          default: 0
+      description: color 또는 size 중 하나 이상에 공백이 아닌 값이 필요합니다.
+    ProductProductOptionInternalResponse:
+      type: object
+      properties:
+        optionId:
+          type: integer
+          format: int64
+        productId:
+          type: integer
+          format: int64
+        productName:
+          type: string
+        price:
+          type: integer
+          format: int32
+        color:
+          type: string
+          nullable: true
+        size:
+          type: string
+          nullable: true
+        available:
+          type: boolean
+        productStatus:
+          $ref: "#/components/schemas/ProductProductStatus"
+    ProductProductOptionResponse:
+      type: object
+      properties:
+        optionId:
+          type: integer
+          format: int64
+        color:
+          type: string
+          nullable: true
+        size:
+          type: string
+          nullable: true
+        measurementSpec:
+          type: object
+          additionalProperties: true
+          nullable: true
+    ProductProductSummaryResponse:
+      type: object
+      properties:
+        productId:
+          type: integer
+          format: int64
+        brandName:
+          type: string
+        productName:
+          type: string
+        price:
+          type: integer
+          format: int32
+        imageUrl:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProductProductStatus"
+    ProductSizeGuideResponse:
+      type: object
+      properties:
+        typeName:
+          type: string
+        unit:
+          type: string
+        description:
+          type: string
+          nullable: true
+        guideImageUrl:
+          type: string
+          nullable: true
+        measurements:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductSizeMeasurementResponse"
+    ProductSizeMeasurementResponse:
+      type: object
+      properties:
+        size:
+          type: string
+        sequence:
+          type: integer
+          format: int32
+          nullable: true
+        values:
+          type: object
+          additionalProperties: true
+    ProductProductStatus:
+      type: string
+      enum:
+        - ON_SALE
+        - SOLD_OUT
+        - HIDDEN
+    ProductWishlistCheckResponse:
+      type: object
+      properties:
+        wishlisted:
+          type: boolean
+    ProductWishlistCreateRequest:
+      type: object
+      required:
+        - itemId
+      properties:
+        itemId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: \S
+          example: "1"
+          description: 상품 ID를 문자열로 전달합니다.
+    ProductWishlistItemResponse:
+      type: object
+      properties:
+        wishlistId:
+          type: integer
+          format: int64
+        itemId:
+          type: string
+        name:
+          type: string
+          nullable: true
+        price:
+          type: integer
+          format: int32
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
+        categoryL1:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          description: 시간대 오프셋 없는 ISO 8601 로컬 일시.
+          example: 2026-10-10T12:00:00
+    ProductWishlistResponse:
+      type: object
+      properties:
+        wishlistId:
+          type: integer
+          format: int64
+    UserBodyUpdate:
+      type: object
+      properties:
+        height:
+          type: number
+          nullable: true
+          minimum: 100
+          maximum: 250
+          description: 키(cm).
+          example: 175
+        weight:
+          type: number
+          nullable: true
+          minimum: 20
+          maximum: 300
+          description: 체중(kg).
+          example: 70
+        gender:
+          type: string
+          enum:
+            - W
+            - M
+            - null
+          nullable: true
+        bodyType:
+          type: string
+          enum:
+            - SLIM
+            - STANDARD
+            - MUSCULAR
+            - CHUBBY
+            - null
+          nullable: true
+        preferredFit:
+          type: string
+          enum:
+            - REGULAR
+            - RELAXED
+            - SLIM
+            - OVERSIZED
+            - CROPPED
+            - null
+          nullable: true
+        preferredStyles:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserStyleTag"
+          nullable: true
+        shoeSize:
+          type: integer
+          nullable: true
+          minimum: 150
+          maximum: 350
+          description: 신발 크기(mm).
+          example: 270
+      description: 생략한 필드는 유지하고 null로 보낸 필드는 초기화합니다. preferredStyles는 중복 제거되며 null/빈 배열로 초기화할 수 있습니다.
+    UserFilledBody:
+      type: object
+      properties:
+        height:
+          type: number
+          nullable: true
+          minimum: 100
+          maximum: 250
+          description: 키(cm).
+          example: 175
+        weight:
+          type: number
+          nullable: true
+          minimum: 20
+          maximum: 300
+          description: 체중(kg).
+          example: 70
+        gender:
+          type: string
+          enum:
+            - W
+            - M
+            - null
+          nullable: true
+        bodyType:
+          type: string
+          enum:
+            - SLIM
+            - STANDARD
+            - MUSCULAR
+            - CHUBBY
+            - null
+          nullable: true
+        preferredFit:
+          type: string
+          enum:
+            - REGULAR
+            - RELAXED
+            - SLIM
+            - OVERSIZED
+            - CROPPED
+            - null
+          nullable: true
+        preferredStyles:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserStyleTag"
+          nullable: true
+        shoeSize:
+          type: integer
+          nullable: true
+          minimum: 150
+          maximum: 350
+          description: 신발 크기(mm).
+          example: 270
+      description: 입력된 신체 정보만 포함합니다. 미입력 필드는 생략됩니다.
+    CommunityPostUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: \S
+          example: 오늘의 코디
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          pattern: \S
+          example: 이 조합은 어떤가요?
+        category:
+          $ref: "#/components/schemas/CommunityPostCategory"
+        imageUrl:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: https://example.com/outfit.jpg
+      description: 생략한 항목은 유지됩니다. imageUrl을 null로 보내면 첨부 이미지가 제거됩니다.
+    ProductPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductProductListResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+    WishlistPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductWishlistItemResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+    ServiceStatus:
+      type: object
+      required:
+        - service
+        - status
+        - timestamp
+      properties:
+        service:
+          type: string
+          example: user-service
+        status:
+          type: string
+          enum:
+            - UP
+        timestamp:
+          type: string
+          format: date-time
+    TryOnRequest:
+      type: object
+      required:
+        - user_id
+        - person_image_url
+        - product_image_url
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        person_image_url:
+          type: string
+          format: uri
+        product_image_url:
+          type: string
+          format: uri
+      example:
+        user_id: 123e4567-e89b-12d3-a456-426614174000
+        person_image_url: https://example.com/person.jpg
+        product_image_url: https://example.com/product.jpg
+    TryOnJob:
+      type: object
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+            - QUEUED
+          default: QUEUED
+    RecommendationRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+    RecommendationResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        product_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    ValidationError:
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        type:
+          type: string
+        input: {}
+        ctx:
+          type: object
+          additionalProperties: true
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationError"
+    GatewayError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
