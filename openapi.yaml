@@ -186,12 +186,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
-  /auth/reissue:
+  /auth/refresh:
     post:
       tags:
         - 인증
       summary: 토큰 재발급
-      operationId: reissueTokens
+      operationId: refreshTokens
       description: 리프레시 토큰을 한 번 소비하고 새 토큰 쌍을 발급합니다. 사용한 리프레시 토큰은 다시 사용할 수 없습니다. Authorization 헤더의 만료된 액세스 토큰은
         게이트웨이에서 검증하지 않습니다.
       security: []
