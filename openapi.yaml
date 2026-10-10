@@ -1828,7 +1828,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/InternalUserController.java
-  /internal/v1/products:
+  /internal/products:
     get:
       tags:
         - 내부 상품
@@ -1868,7 +1868,7 @@ paths:
                 $ref: "#/components/schemas/ProductApiErrorResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductInternalController.java
-  /internal/v1/products/measurements:
+  /internal/products/measurements:
     get:
       tags:
         - 내부 상품
@@ -1908,7 +1908,7 @@ paths:
                 $ref: "#/components/schemas/ProductApiErrorResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductInternalController.java
-  /internal/v1/options:
+  /internal/options:
     get:
       tags:
         - 내부 상품
@@ -1988,7 +1988,7 @@ paths:
                 $ref: "#/components/schemas/ProductApiErrorResponse"
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductOptionInternalController.java
-  /internal/v1/wishlists/check:
+  /internal/wishlists/check:
     get:
       tags:
         - 내부 찜
