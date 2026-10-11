@@ -27,7 +27,7 @@ tags:
   - name: 프로필
     description: 내 프로필 및 신체 정보
   - name: 상품
-    description: 상품 조회 및 등록. 상품 서비스 직접 호출
+    description: 상품 조회. 상품 서비스 직접 호출
   - name: 카테고리
     description: 카테고리 트리
   - name: 찜
@@ -366,43 +366,6 @@ paths:
                 $ref: "#/components/schemas/ProductPage"
         "400":
           description: 요청 형식 또는 입력값 오류
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProductApiErrorResponse"
-      x-gateway-routed: false
-      x-source: product-service/src/main/java/com/fitzza/product/product/controller/ProductController.java
-    post:
-      tags:
-        - 상품
-      summary: 상품 등록
-      operationId: createProduct
-      description: 상품과 옵션을 함께 등록합니다. 현재 컨트롤러에는 인증·관리자 권한 검사가 없습니다.
-      security: []
-      servers:
-        - url: http://localhost:8082
-          description: 상품 서비스 직접 호출 (게이트웨이에 이 경로가 등록되어 있지 않음)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ProductProductCreateRequest"
-      responses:
-        "201":
-          description: 요청 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProductProductDetailResponse"
-        "400":
-          description: 요청 형식 또는 입력값 오류
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProductApiErrorResponse"
-        "404":
-          description: 대상을 찾을 수 없음
           content:
             application/json:
               schema:
