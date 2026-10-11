@@ -314,19 +314,10 @@ paths:
       description: HIDDEN 상품을 제외하고 카테고리 코드와 정렬 기준으로 조회합니다. 현재 게이트웨이 경로와 불일치하므로 상품 서비스를 직접 호출합니다.
       security: []
       parameters:
-        - name: categoryL1
+        - name: category
           in: query
           required: false
-          schema:
-            type: string
-        - name: categoryL2
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: subcategory
-          in: query
-          required: false
+          description: 조회할 카테고리 코드. GET /categories에서 확인합니다.
           schema:
             type: string
         - name: sort
