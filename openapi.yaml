@@ -8,7 +8,7 @@ info:
     구현 기준: [fitzza_msa_finalproject develop](https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/e9dea86d8611b70c33651c5c5b4c0bc296f55503), 커밋 e9dea86d8611b70c33651c5c5b4c0bc296f55503 (2026-10-10 확인).
     컨트롤러, DTO, 검증 로직 및 게이트웨이 설정을 기준으로 작성했습니다. 배포 서버에 대한 실호출 검증은 하지 않았습니다.
 
-    회원가입 계약은 README.md의 문의사항 Q1을 반영했습니다. 별도 중복 확인 API 없이 /auth/signup에서 이메일·닉네임 중복을 검사하고 409 응답의 code로 원인을 구분합니다. 이 변경은 기존 구현 기준 이후의 문서 계약입니다.
+    회원가입 계약은 README.md의 문의사항 Q1을 반영했습니다. 별도 중복 확인 API 없이 /auth/signup에서 이메일·닉네임 중복을 검사하고 409 응답의 errors로 중복된 모든 필드와 원인을 전달합니다. 이 변경은 기존 구현 기준 이후의 문서 계약입니다.
 
     이 문서의 공개 API 경로에서는 /api 및 /api/v1 접두어를 생략했습니다. 상품·카테고리·찜 API는 상품 서비스 직접 호출 서버로 문서화했습니다.
 
@@ -56,7 +56,7 @@ paths:
       tags:
         - 회원 및 인증
       summary: 회원가입
-      description: 이메일·닉네임 중복을 가입 처리 중 검사합니다. 중복이면 409 응답의 code로 원인을 구분합니다.
+      description: 이메일·닉네임 중복을 가입 처리 중 검사합니다. 중복이면 409 응답의 errors로 중복된 모든 필드와 원인을 전달합니다.
       operationId: signup
       security: []
       requestBody:
@@ -81,7 +81,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
         "409":
-          description: 이미 사용 중인 이메일 또는 닉네임입니다. code로 중복 원인을 구분합니다.
+          description: 이미 사용 중인 정보가 있습니다. errors로 중복된 모든 필드와 원인을 구분합니다.
           content:
             application/json:
               schema:
@@ -90,13 +90,29 @@ paths:
                 duplicateEmail:
                   summary: 이메일 중복
                   value:
-                    code: DUPLICATE_EMAIL
-                    message: 이미 사용 중인 이메일입니다.
+                    code: SIGNUP_CONFLICT
+                    message: 이미 사용 중인 정보가 있습니다. 입력 내용을 확인해주세요.
+                    errors:
+                      - field: email
+                        code: DUPLICATE_EMAIL
                 duplicateNickname:
                   summary: 닉네임 중복
                   value:
-                    code: DUPLICATE_NICKNAME
-                    message: 이미 사용 중인 닉네임입니다.
+                    code: SIGNUP_CONFLICT
+                    message: 이미 사용 중인 정보가 있습니다. 입력 내용을 확인해주세요.
+                    errors:
+                      - field: nickname
+                        code: DUPLICATE_NICKNAME
+                duplicateEmailAndNickname:
+                  summary: 이메일과 닉네임 모두 중복
+                  value:
+                    code: SIGNUP_CONFLICT
+                    message: 이미 사용 중인 정보가 있습니다. 입력 내용을 확인해주세요.
+                    errors:
+                      - field: email
+                        code: DUPLICATE_EMAIL
+                      - field: nickname
+                        code: DUPLICATE_NICKNAME
       x-source: user-service/src/main/java/com/fitzza/user/controller/UserController.java
   /auth/signin:
     post:
@@ -1994,13 +2010,28 @@ components:
         - VINTAGE
     UserSignupConflictResponse:
       type: object
-      required: [code, message]
+      required: [code, message, errors]
       properties:
         code:
           type: string
-          enum: [DUPLICATE_EMAIL, DUPLICATE_NICKNAME]
+          enum: [SIGNUP_CONFLICT]
         message:
           type: string
+          example: 이미 사용 중인 정보가 있습니다. 입력 내용을 확인해주세요.
+        errors:
+          type: array
+          minItems: 1
+          description: 중복된 모든 필드와 원인.
+          items:
+            type: object
+            required: [field, code]
+            properties:
+              field:
+                type: string
+                enum: [email, nickname]
+              code:
+                type: string
+                enum: [DUPLICATE_EMAIL, DUPLICATE_NICKNAME]
     UserErrorResponse:
       type: object
       properties:
