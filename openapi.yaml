@@ -138,13 +138,13 @@ paths:
         - 회원 및 인증
       summary: 로그아웃
       operationId: signout
-      description: "리프레시 토큰이 필수입니다. Authorization: Bearer 헤더를 선택적으로 함께 보내면 해당 액세스 토큰도 블랙리스트에 등록합니다. 이미 폐기되었거나 알 수 없는
+      description: "요청 본문은 선택 사항입니다. 본문을 보내는 경우 리프레시 토큰을 포함해야 합니다. Authorization: Bearer 헤더를 선택적으로 함께 보내면 해당 액세스 토큰도 블랙리스트에 등록합니다. 이미 폐기되었거나 알 수 없는
         리프레시 토큰으로 재요청해도 성공합니다. 성공 응답은 200이며 본문이 없습니다."
       security:
         - {}
         - bearerAuth: []
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
