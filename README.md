@@ -153,3 +153,7 @@ REST API의 엔드포인트는 원칙적으로 서버의 자원을 가리키고 
 ### Q8. `/internal/options` vs `/internal/product-options`
 
 두 엔드포인트의 차이점이 무엇인지 궁금합니다.
+
+## 참고문헌
+
+- [상품 데이터 - Pastes.io](https://pastes.io/0fKqRy7P)
