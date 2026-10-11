@@ -420,7 +420,13 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProductCategoryResponse"
+                  $ref: "#/components/schemas/CategoryResponse"
+              example:
+                - code: "001"
+                  title: 상의
+                  subcategories:
+                    - code: "001001"
+                      title: 티셔츠
       x-gateway-routed: false
       x-source: product-service/src/main/java/com/fitzza/product/product/controller/CategoryController.java
   /wishlists:
@@ -2547,18 +2553,26 @@ components:
           type: string
         message:
           type: string
-    ProductCategoryResponse:
+    CategoryResponse:
       type: object
       properties:
         code:
           type: string
           nullable: true
-        name:
+        title:
           type: string
-        children:
+        subcategories:
           type: array
           items:
-            $ref: "#/components/schemas/ProductCategoryResponse"
+            $ref: "#/components/schemas/SubcategoryResponse"
+    SubcategoryResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          nullable: true
+        title:
+          type: string
     ProductOptionSummaryResponse:
       type: object
       properties:
