@@ -22,10 +22,8 @@ servers:
   - url: http://localhost:8080
     description: 백엔드 개발환경
 tags:
-  - name: 회원
-    description: 회원가입. 이메일·닉네임 중복은 가입 요청의 409 응답으로 확인합니다.
-  - name: 인증
-    description: 로그인, 토큰 재발급 및 로그아웃
+  - name: 회원 및 인증
+    description: 회원가입, 로그인, 로그아웃 및 토큰 재발급
   - name: 프로필
     description: 내 프로필 및 신체 정보
   - name: 상품
@@ -56,7 +54,7 @@ paths:
   /auth/signup:
     post:
       tags:
-        - 회원
+        - 회원 및 인증
       summary: 회원가입
       description: 이메일·닉네임 중복을 가입 처리 중 검사합니다. 중복이면 409 응답의 code로 원인을 구분합니다.
       operationId: signup
@@ -103,7 +101,7 @@ paths:
   /auth/signin:
     post:
       tags:
-        - 인증
+        - 회원 및 인증
       summary: 로그인
       operationId: signin
       description: 성공 시 액세스 토큰, 리프레시 토큰, 사용자 ID 및 닉네임을 반환합니다.
@@ -134,10 +132,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserErrorResponse"
       x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
+  /auth/signout:
+    post:
+      tags:
+        - 회원 및 인증
+      summary: 로그아웃
+      operationId: signout
+      description: "리프레시 토큰이 필수입니다. Authorization: Bearer 헤더를 선택적으로 함께 보내면 해당 액세스 토큰도 블랙리스트에 등록합니다. 이미 폐기되었거나 알 수 없는
+        리프레시 토큰으로 재요청해도 성공합니다. 성공 응답은 200이며 본문이 없습니다."
+      security:
+        - {}
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRefreshTokenRequest"
+      responses:
+        "200":
+          description: 요청 성공. 응답 본문 없음.
+        "400":
+          description: 요청 형식 또는 입력값 오류
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserErrorResponse"
+      x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
   /auth/refresh:
     post:
       tags:
-        - 인증
+        - 회원 및 인증
       summary: 토큰 재발급
       operationId: refreshTokens
       description: 리프레시 토큰을 한 번 소비하고 새 토큰 쌍을 발급합니다. 사용한 리프레시 토큰은 다시 사용할 수 없습니다. Authorization 헤더의 만료된 액세스 토큰은
@@ -164,33 +189,6 @@ paths:
                 $ref: "#/components/schemas/UserErrorResponse"
         "401":
           description: 인증 정보 누락·오류 또는 토큰 만료
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserErrorResponse"
-      x-source: user-service/src/main/java/com/fitzza/user/controller/AuthController.java
-  /auth/signout:
-    post:
-      tags:
-        - 인증
-      summary: 로그아웃
-      operationId: signout
-      description: "리프레시 토큰이 필수입니다. Authorization: Bearer 헤더를 선택적으로 함께 보내면 해당 액세스 토큰도 블랙리스트에 등록합니다. 이미 폐기되었거나 알 수 없는
-        리프레시 토큰으로 재요청해도 성공합니다. 성공 응답은 200이며 본문이 없습니다."
-      security:
-        - {}
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserRefreshTokenRequest"
-      responses:
-        "200":
-          description: 요청 성공. 응답 본문 없음.
-        "400":
-          description: 요청 형식 또는 입력값 오류
           content:
             application/json:
               schema:
