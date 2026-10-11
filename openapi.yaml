@@ -16,9 +16,9 @@ info:
     주문·리뷰·알림 서비스에는 상태 조회만 구현되어 있습니다. 가상 피팅·추천은 골격 구현이며 실제 작업 큐/추론은 연결되지 않았습니다. Python API의 사용자·상품 ID는 UUID이며 Java 서비스의 정수 ID와 형식이 다릅니다.
 servers:
   - url: https://api.fitzza.duckdns.org/v1
-    description: 기존 문서의 운영 도메인. 배포·프록시 경로는 확인되지 않았습니다.
+    description: Fitzza API 서버
   - url: http://localhost:8080
-    description: 로컬 게이트웨이
+    description: 백엔드 개발환경
 tags:
   - name: 회원
     description: 회원가입 및 중복 확인
