@@ -223,12 +223,12 @@ paths:
               required:
                 - email
                 - password
-  /auth/reissue:
+  /auth/refresh:
     post:
       tags:
         - 회원
       summary: 토큰 재발급
-      operationId: postApiAuthReissue
+      operationId: postApiAuthRefresh
       description: >-
         Redis의 Refresh Token을 확인하고 Access Token과 Refresh Token을 새로 발급. 사용한 Refresh Token은 즉시 폐기(재사용 불가). 정지·탈퇴
         계정은 거부
