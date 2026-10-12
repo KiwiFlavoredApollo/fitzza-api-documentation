@@ -14,3 +14,4 @@ API 명세서는 [WBS 요구사항 정의서](https://docs.google.com/spreadshee
 - `/users/check-mail` 삭제
 - `/users/check-nickname` 삭제
 - `/users/profile/options` 삭제
+- `/posts/images` 삭제
