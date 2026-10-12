@@ -7,14 +7,14 @@ info:
 
     원본: https://docs.google.com/spreadsheets/d/11iPQ3YFhEUBNp-2VAse4qQpHFEm6ymTOGz5_9-XCA6Y/edit?gid=308248600
 
-    시트의 인증 여부를 반영하고 공개 API 경로에서 /api 접두어를 제거했습니다. README의 다른 경로 변경안과 기존 구현 기준 문서는 적용하지 않았습니다.
+    시트의 인증 여부를 반영하고 공개 API 경로에서 /api 접두어를 제거했습니다. 인증 경로는 /auth/signup, /auth/signin, /auth/signout, /auth/refresh를 사용합니다. 이메일·닉네임 중복 확인 API는 제거하고 회원가입 409 응답으로 통합했습니다.
 
     시트는 필드 이름 중심의 계약입니다. ID는 정수, 금액·점수·치수는 숫자, 일시는 date-time으로 모델링했으며 실제 타입과 상세 검증 범위는 백엔드 확인이 필요합니다. 미정인 객체
     구조는 열린 스키마로 표현하고 요청 필수 여부는 명시된 조건과 기능에 필요한 필드를 기준으로 작성했습니다.
 
     내부·운영 API의 서비스별 호스트 및 사용자 API의 실제 배포 경로는 시트에 정의되지 않았습니다.
 
-    Gateway는 Authorization이 있으면 검증합니다. /users/**는 토큰 누락·만료·위조 시 코드 없는 401을 반환한다는 공통 설명이 있으나 회원가입·중복 확인·선택지
+    Gateway는 Authorization이 있으면 검증합니다. /users/**는 토큰 누락·만료·위조 시 코드 없는 401을 반환한다는 공통 설명이 있으나 프로필 선택지
     조회 행은 인증 N으로 지정되어 있어 확인이 필요합니다. /auth/**는 Gateway 토큰 검증 없이 통과합니다.
 servers:
   - url: /
@@ -38,14 +38,16 @@ tags:
   - name: 내부 통신
   - name: 운영 API
 paths:
-  /users/signup:
+  /auth/signup:
     post:
       tags:
         - 회원
       summary: 회원가입
-      operationId: postApiUsersSignup
+      operationId: postApiAuthSignup
       description: |-
-        이메일 형식·비밀번호 규칙 검증, 비밀번호 BCrypt 저장, 빈 신체정보 행 생성
+        이메일 형식·비밀번호 규칙 검증, 비밀번호 BCrypt 저장, 빈 신체정보 행 생성.
+        이메일과 닉네임 중복을 모두 검사하며, 하나라도 중복되면 가입하지 않고 409를 반환합니다.
+        이메일·닉네임 중복 모두 동일한 DUPLICATE_VALUE 코드를 사용하고 errors 배열에 중복된 모든 필드와 원인을 전달합니다.
 
         FR-ACC-01 / 담당: 지현 / 409: 이메일·닉네임 중복
 
@@ -53,7 +55,7 @@ paths:
 
         시트 응답 표기: 201 { userId }
 
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+        /auth/**는 Gateway 토큰 검증 없이 통과합니다.
       x-source-row: 2
       security: []
       responses:
@@ -68,11 +70,38 @@ paths:
                     type: integer
                     format: int64
         "409":
-          description: "409: FR-ACC-01 / 담당: 지현 / 409: 이메일·닉네임 중복"
+          description: 이메일 또는 닉네임 중복. 중복된 모든 필드와 원인을 errors 배열로 반환합니다.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: "#/components/schemas/SignupConflict"
+              examples:
+                duplicateEmail:
+                  summary: 이메일만 중복
+                  value:
+                    code: DUPLICATE_VALUE
+                    message: 이미 사용 중인 회원 정보가 있습니다.
+                    errors:
+                      - field: email
+                        reason: 이미 사용 중인 이메일입니다.
+                duplicateNickname:
+                  summary: 닉네임만 중복
+                  value:
+                    code: DUPLICATE_VALUE
+                    message: 이미 사용 중인 회원 정보가 있습니다.
+                    errors:
+                      - field: nickname
+                        reason: 이미 사용 중인 닉네임입니다.
+                duplicateEmailAndNickname:
+                  summary: 이메일과 닉네임 모두 중복
+                  value:
+                    code: DUPLICATE_VALUE
+                    message: 이미 사용 중인 회원 정보가 있습니다.
+                    errors:
+                      - field: email
+                        reason: 이미 사용 중인 이메일입니다.
+                      - field: nickname
+                        reason: 이미 사용 중인 닉네임입니다.
       requestBody:
         required: true
         content:
@@ -94,80 +123,12 @@ paths:
                 - email
                 - password
                 - nickname
-  /users/check-email:
-    get:
-      tags:
-        - 회원
-      summary: 이메일 중복 확인
-      operationId: getApiUsersCheckEmail
-      description: |-
-        회원가입 폼 입력 검증용
-
-        FR-ACC-01 / 담당: 지현
-
-        시트 요청 표기: Query: email
-
-        시트 응답 표기: 200 { available }
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
-      x-source-row: 3
-      security: []
-      responses:
-        "200":
-          description: 200 { available }
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  available:
-                    type: boolean
-      parameters:
-        - name: email
-          in: query
-          required: true
-          schema:
-            type: string
-  /users/check-nickname:
-    get:
-      tags:
-        - 회원
-      summary: 닉네임 중복 확인
-      operationId: getApiUsersCheckNickname
-      description: |-
-        회원가입 폼 입력 검증용 (닉네임은 UNIQUE)
-
-        FR-ACC-01 / 담당: 지현
-
-        시트 요청 표기: Query: nickname
-
-        시트 응답 표기: 200 { available }
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
-      x-source-row: 4
-      security: []
-      responses:
-        "200":
-          description: 200 { available }
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  available:
-                    type: boolean
-      parameters:
-        - name: nickname
-          in: query
-          required: true
-          schema:
-            type: string
-  /auth/login:
+  /auth/signin:
     post:
       tags:
         - 회원
       summary: 로그인
-      operationId: postApiAuthLogin
+      operationId: postApiAuthSignin
       description: >-
         Access Token과 Refresh Token 발급. Refresh Token은 Redis에 저장(유효기간 동안 보관). ACTIVE 계정만 허용. Access Token에는
         사용자 ID만 담음
@@ -272,12 +233,12 @@ paths:
                   type: string
               required:
                 - refreshToken
-  /auth/logout:
+  /auth/signout:
     post:
       tags:
         - 회원
       summary: 로그아웃
-      operationId: postApiAuthLogout
+      operationId: postApiAuthSignout
       description: >-
         Redis의 Refresh Token 삭제. Authorization 헤더로 Access Token이 같이 오면 그 토큰도 남은 만료 시간 동안 Redis 블랙리스트에 올려 즉시
         차단. Access Token이 만료된 뒤에도 로그아웃할 수 있도록 Refresh Token만 필수
@@ -5184,6 +5145,43 @@ components:
       in: header
       name: X-Internal-Token
   schemas:
+    SignupConflict:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - errors
+      properties:
+        code:
+          type: string
+          enum:
+            - DUPLICATE_VALUE
+          description: 이메일과 닉네임 중복에 공통으로 사용하는 에러 코드입니다.
+        message:
+          type: string
+          description: 회원가입 실패에 대한 요약입니다.
+        errors:
+          type: array
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+          description: 중복된 모든 필드를 한 번씩 포함합니다. 이메일과 닉네임이 모두 중복이면 두 원인을 함께 반환합니다.
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - field
+              - reason
+            properties:
+              field:
+                type: string
+                enum:
+                  - email
+                  - nickname
+              reason:
+                type: string
+                description: 해당 필드가 중복되어 가입할 수 없는 원인입니다.
     Error:
       type: object
       properties:
