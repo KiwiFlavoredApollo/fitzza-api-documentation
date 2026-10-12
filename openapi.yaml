@@ -7,18 +7,18 @@ info:
 
     원본: https://docs.google.com/spreadsheets/d/11iPQ3YFhEUBNp-2VAse4qQpHFEm6ymTOGz5_9-XCA6Y/edit?gid=308248600
 
-    시트의 /api 경로와 인증 여부를 그대로 반영했습니다. README의 별도 경로 변경안과 기존 구현 기준 문서는 적용하지 않았습니다.
+    시트의 인증 여부를 반영하고 공개 API 경로에서 /api 접두어를 제거했습니다. README의 다른 경로 변경안과 기존 구현 기준 문서는 적용하지 않았습니다.
 
     시트는 필드 이름 중심의 계약입니다. ID는 정수, 금액·점수·치수는 숫자, 일시는 date-time으로 모델링했으며 실제 타입과 상세 검증 범위는 백엔드 확인이 필요합니다. 미정인 객체
     구조는 열린 스키마로 표현하고 요청 필수 여부는 명시된 조건과 기능에 필요한 필드를 기준으로 작성했습니다.
 
     내부·운영 API의 서비스별 호스트 및 사용자 API의 실제 배포 경로는 시트에 정의되지 않았습니다.
 
-    Gateway는 Authorization이 있으면 검증합니다. /api/users/**는 토큰 누락·만료·위조 시 코드 없는 401을 반환한다는 공통 설명이 있으나 회원가입·중복 확인·선택지
-    조회 행은 인증 N으로 지정되어 있어 확인이 필요합니다. /api/auth/**는 Gateway 토큰 검증 없이 통과합니다.
+    Gateway는 Authorization이 있으면 검증합니다. /users/**는 토큰 누락·만료·위조 시 코드 없는 401을 반환한다는 공통 설명이 있으나 회원가입·중복 확인·선택지
+    조회 행은 인증 N으로 지정되어 있어 확인이 필요합니다. /auth/**는 Gateway 토큰 검증 없이 통과합니다.
 servers:
   - url: /
-    description: 호출할 API 서버 원점을 설정하세요. 경로는 시트 기준입니다.
+    description: 호출할 API 서버 원점을 설정하세요. 경로는 시트 기준에서 /api 접두어를 제거했습니다.
 tags:
   - name: 회원
   - name: 프로필
@@ -38,7 +38,7 @@ tags:
   - name: 내부 통신
   - name: 운영 API
 paths:
-  /api/users/signup:
+  /users/signup:
     post:
       tags:
         - 회원
@@ -94,7 +94,7 @@ paths:
                 - email
                 - password
                 - nickname
-  /api/users/check-email:
+  /users/check-email:
     get:
       tags:
         - 회원
@@ -128,7 +128,7 @@ paths:
           required: true
           schema:
             type: string
-  /api/users/check-nickname:
+  /users/check-nickname:
     get:
       tags:
         - 회원
@@ -162,7 +162,7 @@ paths:
           required: true
           schema:
             type: string
-  /api/auth/login:
+  /auth/login:
     post:
       tags:
         - 회원
@@ -223,7 +223,7 @@ paths:
               required:
                 - email
                 - password
-  /api/auth/reissue:
+  /auth/reissue:
     post:
       tags:
         - 회원
@@ -272,7 +272,7 @@ paths:
                   type: string
               required:
                 - refreshToken
-  /api/auth/logout:
+  /auth/logout:
     post:
       tags:
         - 회원
@@ -308,7 +308,7 @@ paths:
                   type: string
               required:
                 - refreshToken
-  /api/users/profile/options:
+  /users/profile/options:
     get:
       tags:
         - 프로필
@@ -346,7 +346,7 @@ paths:
                     type: array
                     items:
                       type: string
-  /api/users/me:
+  /users/me:
     get:
       tags:
         - 프로필
@@ -408,7 +408,7 @@ paths:
                         nullable: true
         "401":
           description: 토큰 누락·만료·위조. 시트에 따르면 코드 없는 401.
-  /api/users/me/body:
+  /users/me/body:
     patch:
       tags:
         - 프로필
@@ -491,7 +491,7 @@ paths:
                   items:
                     type: string
                   nullable: true
-  /api/surveys:
+  /surveys:
     post:
       tags:
         - 설문
@@ -562,7 +562,7 @@ paths:
               required:
                 - orderItemId
                 - sizeFeedback
-  /api/surveys/{surveyId}:
+  /surveys/{surveyId}:
     patch:
       tags:
         - 설문
@@ -616,7 +616,7 @@ paths:
                     - BIG
               required:
                 - sizeFeedback
-  /api/surveys/me:
+  /surveys/me:
     get:
       tags:
         - 설문
@@ -674,7 +674,7 @@ paths:
               format: int64
           style: form
           explode: false
-  /api/posts:
+  /posts:
     get:
       tags:
         - 커뮤니티
@@ -836,7 +836,7 @@ paths:
                 - title
                 - content
                 - category
-  /api/posts/{postId}:
+  /posts/{postId}:
     get:
       tags:
         - 커뮤니티
@@ -1095,7 +1095,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/posts/vote:
+  /posts/vote:
     post:
       tags:
         - 커뮤니티
@@ -1197,7 +1197,7 @@ paths:
                 - content
                 - category
                 - options
-  /api/posts/images:
+  /posts/images:
     post:
       tags:
         - 커뮤니티
@@ -1250,7 +1250,7 @@ paths:
                   type: string
                   format: binary
                   description: 허용 형식·최대 용량은 미확정입니다.
-  /api/posts/share-draft:
+  /posts/share-draft:
     get:
       tags:
         - 커뮤니티
@@ -1318,7 +1318,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/posts/{postId}/likes:
+  /posts/{postId}/likes:
     post:
       tags:
         - 커뮤니티
@@ -1409,7 +1409,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/posts/{postId}/votes:
+  /posts/{postId}/votes:
     post:
       tags:
         - 투표
@@ -1551,7 +1551,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/posts/{postId}/votes/close:
+  /posts/{postId}/votes/close:
     post:
       tags:
         - 투표
@@ -1605,7 +1605,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/posts/{postId}/comments:
+  /posts/{postId}/comments:
     get:
       tags:
         - 댓글
@@ -1733,7 +1733,7 @@ paths:
                   description: 답글일 때
               required:
                 - content
-  /api/comments/{commentId}:
+  /comments/{commentId}:
     patch:
       tags:
         - 댓글
@@ -1855,7 +1855,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/comments/{commentId}/likes:
+  /comments/{commentId}/likes:
     post:
       tags:
         - 댓글
@@ -1946,7 +1946,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/notifications:
+  /notifications:
     get:
       tags:
         - 알림
@@ -2023,7 +2023,7 @@ paths:
           required: false
           schema:
             type: integer
-  /api/notifications/unread-count:
+  /notifications/unread-count:
     get:
       tags:
         - 알림
@@ -2062,7 +2062,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GatewayError"
-  /api/notifications/{notificationId}/read:
+  /notifications/{notificationId}/read:
     patch:
       tags:
         - 알림
@@ -2107,7 +2107,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/notifications/stream:
+  /notifications/stream:
     get:
       tags:
         - 알림
@@ -2154,7 +2154,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GatewayError"
-  /api/categories:
+  /categories:
     get:
       tags:
         - 상품
@@ -2204,7 +2204,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Category"
-  /api/products:
+  /products:
     get:
       tags:
         - 상품
@@ -2305,7 +2305,7 @@ paths:
           required: false
           schema:
             type: integer
-  /api/products/{productId}:
+  /products/{productId}:
     get:
       tags:
         - 상품
@@ -2434,7 +2434,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/wishlists:
+  /wishlists:
     get:
       tags:
         - 찜
@@ -2609,7 +2609,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/carts:
+  /carts:
     get:
       tags:
         - 장바구니
@@ -2745,7 +2745,7 @@ paths:
               required:
                 - optionId
                 - quantity
-  /api/carts/{cartId}:
+  /carts/{cartId}:
     patch:
       tags:
         - 장바구니
@@ -2860,7 +2860,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/worldcups:
+  /worldcups:
     post:
       tags:
         - 월드컵
@@ -2943,7 +2943,7 @@ paths:
               required:
                 - winnerProductId
                 - candidateProductIds
-  /api/worldcups/latest:
+  /worldcups/latest:
     get:
       tags:
         - 월드컵
@@ -2987,7 +2987,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GatewayError"
-  /api/worldcups/history:
+  /worldcups/history:
     get:
       tags:
         - 월드컵
@@ -3078,7 +3078,7 @@ paths:
           required: false
           schema:
             type: integer
-  /api/orders:
+  /orders:
     post:
       tags:
         - 주문
@@ -3231,7 +3231,7 @@ paths:
           required: false
           schema:
             type: integer
-  /api/orders/{orderId}:
+  /orders/{orderId}:
     get:
       tags:
         - 주문
@@ -3322,7 +3322,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/products/{productId}/reviews:
+  /products/{productId}/reviews:
     get:
       tags:
         - 리뷰
@@ -3404,7 +3404,7 @@ paths:
           required: false
           schema:
             type: string
-  /api/reviews:
+  /reviews:
     post:
       tags:
         - 리뷰
@@ -3482,7 +3482,7 @@ paths:
                 - orderItemId
                 - rating
                 - content
-  /api/reviews/{reviewId}:
+  /reviews/{reviewId}:
     patch:
       tags:
         - 리뷰
@@ -3616,7 +3616,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/recommendations:
+  /recommendations:
     post:
       tags:
         - 추천
@@ -3732,7 +3732,7 @@ paths:
           required: false
           schema:
             type: integer
-  /api/recommendations/{requestId}:
+  /recommendations/{requestId}:
     get:
       tags:
         - 추천
@@ -3835,7 +3835,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/recommendations/{requestId}/messages:
+  /recommendations/{requestId}/messages:
     get:
       tags:
         - 추천
@@ -3900,7 +3900,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/recommendations/size:
+  /recommendations/size:
     get:
       tags:
         - 추천
@@ -3975,7 +3975,7 @@ paths:
             type: integer
             format: int64
       x-contract-status: draft
-  /api/fittings/candidates:
+  /fittings/candidates:
     get:
       tags:
         - 피팅
@@ -4076,7 +4076,7 @@ paths:
                     format: int64
               required:
                 - productIds
-  /api/fittings/candidates/{productId}:
+  /fittings/candidates/{productId}:
     delete:
       tags:
         - 피팅
@@ -4115,7 +4115,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /api/fittings/photos:
+  /fittings/photos:
     post:
       tags:
         - 피팅
@@ -4178,7 +4178,7 @@ paths:
                   format: binary
                   description: 허용 형식·최대 용량은 미확정입니다.
       x-contract-status: draft
-  /api/fittings:
+  /fittings:
     post:
       tags:
         - 피팅
@@ -4309,7 +4309,7 @@ paths:
           schema:
             type: integer
       x-contract-status: draft
-  /api/fittings/{fittingId}:
+  /fittings/{fittingId}:
     get:
       tags:
         - 피팅
