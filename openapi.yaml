@@ -1278,12 +1278,12 @@ paths:
           schema:
             type: integer
             format: int64
-  /posts/{postId}/votes:
+  /posts/{postId}/poll/votes:
     post:
       tags:
         - 투표
       summary: 투표 참여
-      operationId: postApiPostsPostIdVotes
+      operationId: postPostsPostIdPollVotes
       description: |-
         한 사용자 1회, 재요청은 같은 결과
 
@@ -1349,11 +1349,12 @@ paths:
                   format: int64
               required:
                 - voteOptionId
+  /posts/{postId}/poll:
     get:
       tags:
         - 투표
       summary: 투표 결과 조회
-      operationId: getApiPostsPostIdVotes
+      operationId: getPostsPostIdPoll
       description: >-
         비로그인도 조회 가능, 로그인 시 내 선택 포함. supportCommentCount는 해당 선택지를 추천한 댓글 수(Jev 판정)
 
@@ -1371,7 +1372,7 @@ paths:
         Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
       x-source-row: 26
       security:
-        - null
+        - {}
         - bearerAuth: []
       responses:
         "200":
@@ -1420,18 +1421,17 @@ paths:
           schema:
             type: integer
             format: int64
-  /posts/{postId}/votes/close:
-    post:
+    patch:
       tags:
         - 투표
       summary: 투표 조기 종료
-      operationId: postApiPostsPostIdVotesClose
+      operationId: patchPostsPostIdPoll
       description: |-
-        작성자만
+        작성자만 종료할 수 있습니다. closed: true로 종료하며, 이미 종료된 투표에도 같은 성공 응답을 반환합니다. 재개는 허용하지 않습니다.
 
         FR-COM-06 / 담당: 지현 / 403
 
-        시트 요청 표기: Path: postId
+        요청: Path: postId / Body: { closed: true }
 
         시트 응답 표기: 200 { closed: true }
       x-source-row: 27
@@ -1474,6 +1474,23 @@ paths:
           schema:
             type: integer
             format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - closed
+              properties:
+                closed:
+                  type: boolean
+                  enum:
+                    - true
+            example:
+              closed: true
+
   /posts/{postId}/comments:
     get:
       tags:
