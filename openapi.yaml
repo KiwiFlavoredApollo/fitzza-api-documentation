@@ -4278,47 +4278,79 @@ paths:
               format: int64
           style: form
           explode: false
-  /actuator/health:
+  /health:
     get:
       tags:
         - 운영 API
-      summary: 서비스 헬스 체크
-      operationId: getActuatorHealth
+      summary: 통합 서비스 헬스 체크
+      operationId: getHealth
       description: |-
-        Spring·FastAPI를 포함한 모든 서비스가 /actuator/health 경로로 상태 점검을 제공합니다. 내부 접근만 허용합니다.
+        Spring·FastAPI를 포함한 모든 서비스가 /health 경로로 생존 상태(liveness)와 준비 상태(readiness)를 제공합니다. 내부 접근만 허용합니다.
 
         ECS/ALB Health Check / 담당: 인프라
 
         시트 요청 표기: -
 
-        시트 응답 표기: 200 { status: UP } / 503 { status: DOWN }
+        시트 응답 표기: 200 { status: UP, liveness: UP, readiness: UP } / 503 { status: NOT_READY, liveness: UP, readiness: DOWN }
 
         내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
       x-source-row: 83
       security: []
       responses:
         "200":
-          description: "200 { status: UP } / 503 { status: DOWN }"
+          description: "200 { status: UP, liveness: UP, readiness: UP }"
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - status
+                  - liveness
+                  - readiness
                 properties:
                   status:
                     type: string
                     enum:
                       - UP
+                  liveness:
+                    type: string
+                    enum:
+                      - UP
+                  readiness:
+                    type: string
+                    enum:
+                      - UP
+              example:
+                status: UP
+                liveness: UP
+                readiness: UP
         "503":
-          description: 서비스가 준비되지 않거나 비정상 상태입니다.
+          description: "503 { status: NOT_READY, liveness: UP, readiness: DOWN }"
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - status
+                  - liveness
+                  - readiness
                 properties:
                   status:
                     type: string
                     enum:
+                      - NOT_READY
+                  liveness:
+                    type: string
+                    enum:
+                      - UP
+                  readiness:
+                    type: string
+                    enum:
                       - DOWN
+              example:
+                status: NOT_READY
+                liveness: UP
+                readiness: DOWN
       x-internal: true
 components:
   securitySchemes:
