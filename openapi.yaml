@@ -3611,7 +3611,7 @@ paths:
                 - photoId
                 - productIds
       x-contract-status: draft
-  /internal/users/{userId}/body:
+  /users/{userId}/body:
     get:
       tags:
         - 내부 통신
@@ -3674,7 +3674,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /internal/users:
+  /users:
     get:
       tags:
         - 내부 통신
@@ -3725,7 +3725,7 @@ paths:
             maxItems: 100
           style: form
           explode: false
-  /internal/notifications/events:
+  /notifications/events:
     post:
       tags:
         - 내부 통신
@@ -3837,7 +3837,7 @@ paths:
               format: int64
           style: form
           explode: false
-  /internal/products/measurements:
+  /products/measurements:
     get:
       tags:
         - 내부 통신
@@ -3898,7 +3898,7 @@ paths:
               format: int64
           style: form
           explode: false
-  /internal/wishlists/check:
+  /wishlists/check:
     get:
       tags:
         - 내부 통신
@@ -3945,7 +3945,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /internal/worldcups/{worldcupHistoryId}:
+  /worldcups/{worldcupHistoryId}:
     get:
       tags:
         - 내부 통신
@@ -4003,7 +4003,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /internal/order-items/{orderItemId}:
+  /order-items/{orderItemId}:
     get:
       tags:
         - 내부 통신
@@ -4053,7 +4053,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /internal/recommendations/combos/{comboId}:
+  /recommendations/combos/{comboId}:
     get:
       tags:
         - 내부 통신
@@ -4119,7 +4119,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /internal/recommendations/size-feedback:
+  /recommendations/size-feedback:
     post:
       tags:
         - 내부 통신
@@ -4168,7 +4168,7 @@ paths:
                 - productId
                 - optionId
                 - sizeFeedback
-  /internal/fittings/{fittingId}:
+  /fittings/{fittingId}:
     get:
       tags:
         - 내부 통신
@@ -4220,7 +4220,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /internal/product-options:
+  /product-options:
     get:
       tags:
         - 내부 통신
