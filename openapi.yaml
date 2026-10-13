@@ -1658,6 +1658,46 @@ paths:
           schema:
             type: integer
             format: int64
+  /comments/{commentId}/like:
+    get:
+      tags:
+        - 댓글
+      summary: 댓글 좋아요 조회
+      operationId: getApiCommentsCommentIdLike
+      description: 댓글의 좋아요 수와 현재 사용자의 좋아요 여부를 조회합니다.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 댓글 좋아요 수와 현재 사용자의 좋아요 여부
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  likeCount:
+                    type: integer
+                  liked:
+                    type: boolean
+        "401":
+          description: 토큰 만료(TOKEN_EXPIRED) 또는 무효(INVALID_TOKEN).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+        "503":
+          description: 인증 확인 불가(AUTH_UNAVAILABLE), 잠시 후 재시도.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GatewayError"
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
   /comments/{commentId}/likes:
     post:
       tags:
