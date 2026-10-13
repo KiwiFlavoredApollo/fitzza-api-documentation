@@ -284,15 +284,15 @@ paths:
         시트 요청 표기: -
 
 
-        시트 응답 표기: 200 { email, nickname, body: { height, weight, gender, preferredFit,
-        preferredStyles[], shoeSize } }
+        시트 응답 표기: 200 { email, nickname, height, weight, gender, preferredFit,
+        preferredStyles[], shoeSize }
       x-source-row: 10
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: "200 { email, nickname, body: { height, weight, gender, preferredFit,
-            preferredStyles[], shoeSize } }"
+          description: "200 { email, nickname, height, weight, gender, preferredFit,
+            preferredStyles[], shoeSize }"
           content:
             application/json:
               schema:
@@ -302,29 +302,26 @@ paths:
                     type: string
                   nickname:
                     type: string
-                  body:
-                    type: object
-                    properties:
-                      height:
-                        type: number
-                        nullable: true
-                      weight:
-                        type: number
-                        nullable: true
-                      gender:
-                        type: string
-                        nullable: true
-                      preferredFit:
-                        type: string
-                        nullable: true
-                      preferredStyles:
-                        type: array
-                        items:
-                          type: string
-                        nullable: true
-                      shoeSize:
-                        type: number
-                        nullable: true
+                  height:
+                    type: number
+                    nullable: true
+                  weight:
+                    type: number
+                    nullable: true
+                  gender:
+                    type: string
+                    nullable: true
+                  preferredFit:
+                    type: string
+                    nullable: true
+                  preferredStyles:
+                    type: array
+                    items:
+                      type: string
+                    nullable: true
+                  shoeSize:
+                    type: number
+                    nullable: true
         "401":
           description: 토큰 누락·만료·위조. 시트에 따르면 코드 없는 401.
     patch:
@@ -339,13 +336,13 @@ paths:
 
         시트 요청 표기: Body: height, weight, gender, preferredFit, preferredStyles[], shoeSize (모두 선택)
 
-        시트 응답 표기: 200 { 수정된 body }
+        시트 응답 표기: 200 { height, weight, gender, preferredFit, preferredStyles[], shoeSize }
       x-source-row: 11
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: 200 { 수정된 body }
+          description: 200 { height, weight, gender, preferredFit, preferredStyles[], shoeSize }
           content:
             application/json:
               schema:
