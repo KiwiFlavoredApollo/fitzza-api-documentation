@@ -596,7 +596,7 @@ paths:
               format: int64
           style: form
           explode: false
-  /posts:
+  /community/posts:
     get:
       tags:
         - 커뮤니티
@@ -758,7 +758,7 @@ paths:
                 - title
                 - content
                 - category
-  /posts/{postId}:
+  /community/posts/{postId}:
     get:
       tags:
         - 커뮤니티
@@ -1017,7 +1017,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /posts/vote:
+  /community/posts/vote:
     post:
       tags:
         - 커뮤니티
@@ -1119,7 +1119,7 @@ paths:
                 - content
                 - category
                 - options
-  /posts/share-draft:
+  /community/posts/share-draft:
     get:
       tags:
         - 커뮤니티
@@ -1187,7 +1187,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /posts/{postId}/likes:
+  /community/posts/{postId}/likes:
     post:
       tags:
         - 커뮤니티
@@ -1278,7 +1278,7 @@ paths:
           schema:
             type: integer
             format: int64
-  /posts/{postId}/poll/votes:
+  /community/posts/{postId}/poll/votes:
     post:
       tags:
         - 투표
@@ -1349,7 +1349,7 @@ paths:
                   format: int64
               required:
                 - voteOptionId
-  /posts/{postId}/poll:
+  /community/posts/{postId}/poll:
     get:
       tags:
         - 투표
@@ -1491,7 +1491,7 @@ paths:
             example:
               closed: true
 
-  /posts/{postId}/comments:
+  /community/posts/{postId}/comments:
     get:
       tags:
         - 댓글
