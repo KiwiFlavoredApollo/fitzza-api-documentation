@@ -1826,45 +1826,6 @@ paths:
           required: false
           schema:
             type: integer
-  /notifications/unread-count:
-    get:
-      tags:
-        - 알림
-      summary: 안 읽은 알림 수
-      operationId: getApiNotificationsUnreadCount
-      description: |-
-        헤더 알림 아이콘 표시용
-
-        FR-NOT-00 / 담당: 지현
-
-        시트 요청 표기: -
-
-        시트 응답 표기: 200 { count }
-      x-source-row: 35
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: 200 { count }
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  count:
-                    type: integer
-        "401":
-          description: 토큰 만료(TOKEN_EXPIRED) 또는 무효(INVALID_TOKEN).
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GatewayError"
-        "503":
-          description: 인증 확인 불가(AUTH_UNAVAILABLE), 잠시 후 재시도.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GatewayError"
   /notifications/{notificationId}/read:
     patch:
       tags:
