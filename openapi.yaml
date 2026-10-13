@@ -1871,53 +1871,6 @@ paths:
           schema:
             type: integer
             format: int64
-  /notifications/stream:
-    get:
-      tags:
-        - 알림
-      summary: 알림 실시간 구독 (SSE)
-      operationId: getApiNotificationsStream
-      description: >-
-        접속 중인 사용자에게 새 알림을 실시간 전달. 연결이 끊기면 브라우저가 자동 재연결하고, 놓친 알림은 알림 목록에서 조회. 연결 유지용 heartbeat 전송
-
-
-        FR-NOT-00 / 담당: 지현 / 브라우저 기본 EventSource는 Authorization 헤더를 못 붙임 — 토큰 전달 방식 FE와 합의 필요
-
-
-        시트 요청 표기: -
-
-
-        시트 응답 표기: 200 text/event-stream — event: notification / data: { notificationId, type, content,
-        targetId, createdAt }
-      x-source-row: 37
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: "200 text/event-stream — event: notification / data: { notificationId, type, content, targetId,
-            createdAt }"
-          content:
-            text/event-stream:
-              schema:
-                type: string
-              example: >+
-                event: notification
-
-                data: {"notificationId":1,"type":"COMMENT","content":"새
-                댓글","targetId":1,"createdAt":"2026-10-12T00:00:00Z"}
-
-        "401":
-          description: 토큰 만료(TOKEN_EXPIRED) 또는 무효(INVALID_TOKEN).
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GatewayError"
-        "503":
-          description: 인증 확인 불가(AUTH_UNAVAILABLE), 잠시 후 재시도.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GatewayError"
   /categories:
     get:
       tags:
