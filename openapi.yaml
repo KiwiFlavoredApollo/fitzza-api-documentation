@@ -1826,7 +1826,7 @@ paths:
           required: false
           schema:
             type: integer
-  /notifications/{notificationId}/read:
+  /notifications/{notificationId}:
     patch:
       tags:
         - 알림
