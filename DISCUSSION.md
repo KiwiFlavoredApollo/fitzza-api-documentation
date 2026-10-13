@@ -1,39 +1,43 @@
 # DISCUSSION
 
-프로필 patch users/me/body -> users/me
+## 프로필
 
-설문 필요해서 나눠놓은 이유가 있어서 유지 원함
+- `PATCH /users/me/body`의 경로를 `/users/me`로 변경한다.
 
-설문 PATCH 빼기
+## 설문
 
-커뮤니티 Get /posts/share-draft : 월드컵 결과를 게시글 공유하기
-ㄴ 공유하기 누르면 글을 쓰는 화면으로 넘어가서 작성
-이 API 빼고 월드컵에서 Get 받아오는 걸로
+- 설문을 별도로 분리한 이유가 있으므로 유지한다.
+- 설문 `PATCH` API를 삭제한다.
 
-커뮤니티 Post /posts/vote  없애고 posts에 투표글 구분해서 넣는 dto 추가하기
+## 커뮤니티
 
-커뮤니티 Get /posts/{postId}/likes 로 게시글 좋아요 조회 추가
+- `GET /posts/share-draft`를 삭제하고 월드컵 조회 API로 결과를 가져온다. 공유하기를 누르면 글 작성 화면으로 이동하여 월드컵 결과를 게시글로 공유한다.
+- `POST /posts/vote`를 삭제하고, `POST /posts`의 요청 DTO에 투표글을 구분하는 항목을 추가한다.
+- `GET /posts/{postId}/likes`로 게시글 좋아요 조회를 추가한다.
+- `/posts`로 시작하는 모든 엔드포인트의 경로를 `/community/posts`로 변경한다.
+- `GET /comments/{commentId}/like`로 댓글 좋아요 조회를 추가한다.
 
-posts로 시작하는 엔드포인트를 /community/posts 로 다 바꾸기
+## 알림
 
-커뮤니티 Get comments/{commentId}/like 로 댓글 좋아요 조회 추가
+- `GET /notification/unread-count`를 삭제한다.
+- 알림 읽음 처리 API의 경로에서 `/read`를 제거하고 `PATCH /notifications/{notificationId}`로 변경한다.
+- `GET /notifications/stream`을 삭제하고 FCM으로 변경한다.
 
-알림 Get /notification/unread-count API 삭제
+> 논의 배경: SSE를 사용하면 다른 화면으로 이동했을 때 알림을 받지 못한다는 우려가 있다. FCM이 일정 시간 동안 확인을 재전송한다면 더 적합한 방식일 수 있다.
 
-알림 Patch /notifications/{notificationId} 로 URL 변경 read 삭제
+## 추천
 
-알림 알림실시간 구독 SSE 사용하게 되면 , 다른데 다녀오면 알림 못 받는다.
-FCM 을 쓰면 일정 시간 안에는 계속 확인을 보내준다... 라고 하면 그게 좀 더 적합한 기능
-Get /notifications/stream -> 삭제후 FCM 으로 수정
+- `POST /recommendations`의 응답 바디에 `GET /recommendations/{requestId}`의 코디 추천 결과를 포함한다.
+- 사이즈 추천 API인 `GET /recommendation/size`를 삭제한다.
+- `GET /recommendations/{requestId}/messages`를 삭제한다.
 
+## 피팅
 
-추천 Post reponse body post/recommendations 에 Get의 /recommendations/{requestId} 코디추천결과 넣어주기
-사이즈 추천 Get /recommendation/size 삭제 , Get /recommendations/{requestId}/messages 삭제
+- 피팅 엔드포인트의 경로를 `/vton` 기준으로 변경한다. 세부 경로는 추가 논의가 필요하다.
+- 자연어 추천 후에만 가상 피팅을 수행한다. 생성된 이미지를 영구 저장하여 추천 결과에서 함께 보여준다.
+- 다른 피팅 API를 삭제하고 `POST /vton`만 유지한다.
 
-피팅 /vton/'' 으로 엔드포인트 이름이 달라져야합니다.
+## 운영
 
-자연어 추천 후에만 가상피팅을 하는데 , 생성된 이미지를 영구저장해서 추천 결과에서 같이 보여줄 수 있도록 해야함
-
-다른 거 다 지우고 post/vton 남기기
-
-운영 API 에 Spring health check 에 FastAPI 통일시키기 , body 형식 통일하기
+- 운영 API의 Spring과 FastAPI 헬스 체크 방식을 통일한다.
+- 응답 바디 형식을 통일한다.
