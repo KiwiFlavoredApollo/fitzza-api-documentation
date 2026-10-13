@@ -330,12 +330,11 @@ paths:
                         nullable: true
         "401":
           description: 토큰 누락·만료·위조. 시트에 따르면 코드 없는 401.
-  /users/me/body:
     patch:
       tags:
         - 프로필
       summary: 프로필 저장·수정·삭제
-      operationId: patchApiUsersMeBody
+      operationId: patchApiUsersMe
       description: |-
         온보딩 저장과 수정에 공통 사용. 미전달 필드는 유지, null 전달 시 해당 값 삭제
 
