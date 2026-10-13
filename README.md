@@ -9,31 +9,6 @@ Fitzza 웹 어플리케이션이 사용하는 API의 문서입니다.
 
 ## 수정사항
 
-### `/api/v1`과 `/api` 접두어 삭제
-
-- `http://example.com/api/v1/auth/signin`
-- `http://api.example.com/v1/auth/signin`
-
-스프링부트를 배울 때, 백엔드 주소에 `/api/v1` 접두사를 붙여서 API 서버 URL로 사용했었습니다. 접두사를 사용하는 대신에 `api` 서브도메인을 사용할 수도 있습니다.
- 
-이번 프로젝트에서는 `api` 서브도메일을 사용하겠습니다. CDN 서버는 Amazon S3 객체 스토리지 서버를 사용하고 고정된 URL이 제공됩니다. API 서버는 ECS on EC2를 사용하고 DuckDNS와 SWAG를 사용해서 DDNS를 설정하고 리버스 프록시를 통해 서브도메인을 설정할 수 있습니다. 
-
-### `/auth/refresh`
-
-`/auth/reissue` 대신에 `/auth/refresh` 엔드포인트를 사용하겠습니다. 이 엔드포인트의 목적은 리프레시 토큰을 사용해서 액세스토큰을 새로 발급받는 것입니다. 재발급을 의미하는 `reissue`를 사용하는 것이 잘못된 것은 아니지만, 리프레시(`refresh`) 토큰의 이름을 그대로 사용해야 헷갈리지 않을 것 같습니다.
-
-### `/auth/signin`
-
-회원가입을 할 때 `/auth/signup` 을 사용하고 있고, 같은 단어를 사용하도록 수정했습니다.
-
-### `/auth/signout`
-
-회원가입을 할 때 `/auth/signup` 을 사용하고 있고, 같은 단어를 사용하도록 수정했습니다.
-
-### `/wishlists`
-
-프론트엔드에서는 LikesPage.jsx 라고 되어있습니다. WishlistPage.jsx 로 수정하겠습니다. 
-
 ### `/status/xxx-service`
 
 `/xxx/status` 에서 `/status/xxx-service` 로 수정하였습니다. `/status/xxx-service` 를 사용하면 백엔드의 특정 "서비스"의 상태를 가져온다는 의미를 강하게 전달할 수 있을 것 같습니다.
@@ -44,26 +19,7 @@ Fitzza 웹 어플리케이션이 사용하는 API의 문서입니다.
 
 엑세스토큰을 포함해서 요청을 보내는 것이 아니기 때문에 userId를 경로변수로 전달합니다. 
 
-### 이메일 및 사용자명 중복여부를 확인하는 엔드포인트 삭제 
-
-- `/auth/check-mail`
-- `/auth/check-nickname`
-
-REST API의 엔드포인트는 원칙적으로 서버의 자원을 가리키고 따라서 명사입니다. 이메일과 사용자이름의 중복여부는 백엔드에서 사용자를 등록하는 과정에서 확인하게 되는데, 중복인 경우에는 `/auth/signup` 엔드포인트의 요청에 대하여 `409 Conflict`상태코드를 반환하고 응답 내부에서 `DUPLICATE_EMAIL` 또는 `DUPLICATE_NICKNAME`를 반환하게 하였습니다.
-
-### `POST /products` 엔드포인트 삭제
-
-필요하지 않을 것으로 판단하여 삭제했습니다.
-
-### `GET /products`의 `categoryL1`, `categoryL2` 등의 쿼리 삭제
-
-`category` 쿼리로 통합하였습니다.
-
 ## 문의사항
-
-### Q1. 이메일 및 사용자명 중복여부를 확인하는 엔드포인트가 필요한가
-
-수정해서 반영하였습니다.
 
 ### Q2. 프로필 선택지가 필요한 이유가 무엇인가
 
@@ -100,7 +56,7 @@ REST API의 엔드포인트는 원칙적으로 서버의 자원을 가리키고 
 
 `gender`는 Woman/Man이 아니라 Male/Female로 하는 것으로 건의드립니다. 성별도 `body`라는 카테고리 아래에 있는 것이 맞는지 잘 모르겠습니다.
 
-`bodyType`, `preferredFit` 그리고 `preferredStyles`는 `/uses/profile/optioins` 엔드포인트에서 하나의 카테고리로 묶이는 것 같습니다. `options`와 같은 별도 카테로리를 만드는 것을 건의드립니다.
+`bodyType`, `preferredFit` 그리고 `preferredStyles`는 `/users/profile/optioins` 엔드포인트에서 하나의 카테고리로 묶이는 것 같습니다. `options`와 같은 별도 카테로리를 만드는 것을 건의드립니다.
 
 ```json
 {
@@ -140,27 +96,9 @@ REST API의 엔드포인트는 원칙적으로 서버의 자원을 가리키고 
 }
 ```
 
-### Q7. `/tryon` 대신에 `/vton`을 사용하는 것은 어떤가
-
-- `/tryon`
-- `/try-on`
-- `/vton`
-
-제일 보기 좋은 엔드포인트는 `/try-on`이라고 생각합니다. 하지만, `/tryon`을 사용한 이유는 백엔드에서 virtual-tryon-service 라고 이름을 지었기 때문이라고 추측합니다. `/virtual-tryon`이라는 엔드포인트는 너무 길다고 생각합니다. 
-
-엔드포인트 이름이 긴 것이 괜찮다고 하더라도, `/virtual-try-on`가 조금 더 보기 좋지만, 모듈 이름을 virtual-try-on-service라고 짓는 것도 썩 마음에 들지 않습니다.  
-
-때문에 CatVTON 등에서 사용하는 것처럼 VTON이라는 약어를 사용하는 것은 어떤지 건의드립니다. 백엔드 모듈 이름도 vton-service로 간소화시킬 수 있을 것으로 기대합니다.
-
-아울러 `/vton/jobs` 대신에 `/vton`을 사용해도 될 것 같습니다. 
-
 ### Q8. review-service가 따로 있는 이유는 무엇인가
 
 `/reviews` 엔드포인트가 상품에 대한 리뷰를 불러오는 것이라면 product-service에서 관리하면 될 것 같다고 생각했습니다. 별도 서비스로 분리한 이유가 있는지 궁금합니다.
-
-### Q8. `/internal/options` vs `/internal/product-options`
-
-두 엔드포인트의 차이점이 무엇인지 궁금합니다.
 
 ## 참고문헌
 
