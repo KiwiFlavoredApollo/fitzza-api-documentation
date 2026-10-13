@@ -284,14 +284,14 @@ paths:
         시트 요청 표기: -
 
 
-        시트 응답 표기: 200 { email, nickname, body: { height, weight, gender, bodyType, preferredFit,
+        시트 응답 표기: 200 { email, nickname, body: { height, weight, gender, preferredFit,
         preferredStyles[], shoeSize } }
       x-source-row: 10
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: "200 { email, nickname, body: { height, weight, gender, bodyType, preferredFit,
+          description: "200 { email, nickname, body: { height, weight, gender, preferredFit,
             preferredStyles[], shoeSize } }"
           content:
             application/json:
@@ -312,9 +312,6 @@ paths:
                         type: number
                         nullable: true
                       gender:
-                        type: string
-                        nullable: true
-                      bodyType:
                         type: string
                         nullable: true
                       preferredFit:
@@ -340,7 +337,7 @@ paths:
 
         FR-PRF-01, 02 / 담당: 지현 / 400: 단위·허용 범위 오류
 
-        시트 요청 표기: Body: height, weight, gender, bodyType, preferredFit, preferredStyles[], shoeSize (모두 선택)
+        시트 요청 표기: Body: height, weight, gender, preferredFit, preferredStyles[], shoeSize (모두 선택)
 
         시트 응답 표기: 200 { 수정된 body }
       x-source-row: 11
@@ -361,9 +358,6 @@ paths:
                     type: number
                     nullable: true
                   gender:
-                    type: string
-                    nullable: true
-                  bodyType:
                     type: string
                     nullable: true
                   preferredFit:
@@ -401,9 +395,6 @@ paths:
                 gender:
                   type: string
                   nullable: true
-                bodyType:
-                  type: string
-                  nullable: true
                 preferredFit:
                   type: string
                   nullable: true
@@ -411,6 +402,9 @@ paths:
                   type: array
                   items:
                     type: string
+                  nullable: true
+                shoeSize:
+                  type: number
                   nullable: true
   /surveys:
     post:
