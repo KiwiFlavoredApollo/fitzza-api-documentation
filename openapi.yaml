@@ -1765,7 +1765,7 @@ paths:
 
         FR-NOT-00 / 담당: 지현 / 403
 
-        시트 요청 표기: Path: notificationId
+        시트 요청 표기: Path: notificationId / Body: notificationId, type, content, targetId, isRead, createdAt (모두 선택)
 
         시트 응답 표기: 200
       x-source-row: 36
@@ -1799,6 +1799,28 @@ paths:
           schema:
             type: integer
             format: int64
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notificationId:
+                  type: integer
+                  format: int64
+                type:
+                  type: string
+                content:
+                  type: string
+                targetId:
+                  type: integer
+                  format: int64
+                isRead:
+                  type: boolean
+                createdAt:
+                  type: string
+                  format: date-time
   /categories:
     get:
       tags:
