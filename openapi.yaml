@@ -2283,7 +2283,7 @@ paths:
       summary: 장바구니 조회
       operationId: getApiCarts
       description: >-
-        상품별 금액과 전체 합계 포함
+        상품별 금액을 포함한 장바구니 항목 배열
 
 
         FR-CART-02 / 담당: 주희
@@ -2292,57 +2292,50 @@ paths:
         시트 요청 표기: -
 
 
-        시트 응답 표기: 200 { items: [{ cartId, optionId, quantity, available, productId, brandName, productName,
-        color, size, imageUrl, unitPrice, linePrice }], totalQuantity, totalPrice }
+        시트 응답 표기: 200 [{ cartId, optionId, quantity, available, productId, brandName, productName,
+        color, size, imageUrl, unitPrice, linePrice }]
       x-source-row: 44
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: "200 { items: [{ cartId, optionId, quantity, available, productId, brandName, productName, color,
-            size, imageUrl, unitPrice, linePrice }], totalQuantity, totalPrice }"
+          description: "200 [{ cartId, optionId, quantity, available, productId, brandName, productName, color,
+            size, imageUrl, unitPrice, linePrice }]"
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        cartId:
-                          type: integer
-                          format: int64
-                        optionId:
-                          type: integer
-                          format: int64
-                        quantity:
-                          type: integer
-                        available:
-                          type: boolean
-                        productId:
-                          type: integer
-                          format: int64
-                        brandName:
-                          type: string
-                        productName:
-                          type: string
-                        color:
-                          type: string
-                        size:
-                          type: string
-                        imageUrl:
-                          type: string
-                          format: uri
-                        unitPrice:
-                          type: number
-                        linePrice:
-                          type: number
-                  totalQuantity:
-                    type: integer
-                  totalPrice:
-                    type: number
+                type: array
+                items:
+                  type: object
+                  properties:
+                    cartId:
+                      type: integer
+                      format: int64
+                    optionId:
+                      type: integer
+                      format: int64
+                    quantity:
+                      type: integer
+                    available:
+                      type: boolean
+                    productId:
+                      type: integer
+                      format: int64
+                    brandName:
+                      type: string
+                    productName:
+                      type: string
+                    color:
+                      type: string
+                    size:
+                      type: string
+                    imageUrl:
+                      type: string
+                      format: uri
+                    unitPrice:
+                      type: number
+                    linePrice:
+                      type: number
         "401":
           description: 토큰 만료(TOKEN_EXPIRED) 또는 무효(INVALID_TOKEN).
           content:
