@@ -2982,12 +2982,12 @@ paths:
           schema:
             type: integer
             format: int64
-  /products/{productId}/reviews:
+  /reviews:
     get:
       tags:
         - 리뷰
       summary: 상품 리뷰 목록
-      operationId: getApiProductsProductIdReviews
+      operationId: getApiReviews
       description: >-
         상품별 리뷰 페이징 조회. 정렬 조건 적용
 
@@ -2995,7 +2995,7 @@ paths:
         Review Service / 담당: 지현
 
 
-        시트 요청 표기: Path: productId / Query: page, size, sort
+        시트 요청 표기: Query: productId(필수), page, size, sort
 
 
         시트 응답 표기: 200 { content: [{ reviewId, productId, userId, rating, content, imageUrl, createdAt }],
@@ -3044,7 +3044,7 @@ paths:
                     type: integer
       parameters:
         - name: productId
-          in: path
+          in: query
           required: true
           schema:
             type: integer
@@ -3064,7 +3064,6 @@ paths:
           required: false
           schema:
             type: string
-  /reviews:
     post:
       tags:
         - 리뷰
