@@ -3564,7 +3564,7 @@ paths:
 
         FR-VTO-02, 03 / 담당: 경민 / FIX 안됨
 
-        시트 요청 표기: Body: photoId, productIds[]
+        요청: multipart/form-data로 모자, 상의, 하의, 신발, 아우터, 사람 이미지 파일을 각각 구분하여 전송합니다. 각 필드는 이미지 파일 1개이며 여섯 필드 모두 필수입니다.
 
         시트 응답 표기: 202 { fittingId, status: PENDING }
       x-source-row: 68
@@ -3600,21 +3600,54 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:
-                photoId:
-                  type: integer
-                  format: int64
-                productIds:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
+                headwearImage:
+                  type: string
+                  format: binary
+                  description: 모자 이미지 파일.
+                topwearImage:
+                  type: string
+                  format: binary
+                  description: 상의 이미지 파일.
+                bottomwearImage:
+                  type: string
+                  format: binary
+                  description: 하의 이미지 파일.
+                footwearImage:
+                  type: string
+                  format: binary
+                  description: 신발 이미지 파일.
+                outerwearImage:
+                  type: string
+                  format: binary
+                  description: 아우터 이미지 파일.
+                personImage:
+                  type: string
+                  format: binary
+                  description: 가상 피팅 대상 사람 이미지 파일.
               required:
-                - photoId
-                - productIds
+                - headwearImage
+                - topwearImage
+                - bottomwearImage
+                - footwearImage
+                - outerwearImage
+                - personImage
+            encoding:
+              headwearImage:
+                contentType: image/*
+              topwearImage:
+                contentType: image/*
+              bottomwearImage:
+                contentType: image/*
+              footwearImage:
+                contentType: image/*
+              outerwearImage:
+                contentType: image/*
+              personImage:
+                contentType: image/*
       x-contract-status: draft
   /users/{userId}/body:
     get:
