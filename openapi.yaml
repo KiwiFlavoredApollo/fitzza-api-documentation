@@ -1941,7 +1941,7 @@ paths:
                   page:
                     type: integer
                   size:
-                    type: string
+                    type: integer
                   totalElements:
                     type: integer
                   totalPages:
