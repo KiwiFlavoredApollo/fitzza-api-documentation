@@ -16,7 +16,7 @@ info:
 
     Gateway는 Authorization이 있으면 검증합니다. /users/**는 토큰 누락·만료·위조 시 코드 없는 401을 반환합니다. /auth/**는 Gateway 토큰 검증 없이 통과합니다.
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8080/api/v1
     description: 로컬 개발 서버
   - url: /
     description: 호출할 API 서버 원점을 설정하세요. 경로는 시트 기준에서 /api 접두어를 제거했습니다.
