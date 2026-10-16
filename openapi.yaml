@@ -1880,16 +1880,16 @@ paths:
       description: >-
         category 길이 3은 대분류, 6은 중분류, 9는 소분류. 없으면 노출 상품 전체(HIDDEN 제외).
 
-        sort는 LATEST(최신, productId 내림차순), LOW_PRICE(낮은 가격, productId 내림차순).
+        sort는 TIME_DESC(최신, productId 내림차순), PRICE_ASC(낮은 가격, productId 내림차순).
 
-        잘못된 sort는 LATEST. 결과 없으면 content는 빈 배열.
+        잘못된 sort는 TIME_DESC. 결과 없으면 content는 빈 배열.
 
 
         FR-CAT-01, 02 / 담당: 주희
 
 
-        시트 요청 표기: Query: categoryL1(코드), categoryL2(코드), subcategory(코드), sort(LOW_PRICE/LATEST), page,
-        sizeQuery: category(코드, 선택), sort(LATEST/LOW_PRICE, 기본 LATEST), page, size
+        시트 요청 표기: Query: categoryL1(코드), categoryL2(코드), subcategory(코드), sort(PRICE_ASC/TIME_DESC), page,
+        sizeQuery: category(코드, 선택), sort(TIME_DESC/PRICE_ASC, 기본 TIME_DESC), page, size
 
 
         시트 응답 표기: 200 {
@@ -1960,8 +1960,8 @@ paths:
           required: false
           schema:
             type: string
-            default: LATEST
-            description: LATEST 또는 LOW_PRICE. 잘못된 값은 LATEST로 처리됩니다.
+            default: TIME_DESC
+            description: TIME_DESC 또는 PRICE_ASC. 잘못된 값은 TIME_DESC로 처리됩니다.
         - name: page
           in: query
           required: false
