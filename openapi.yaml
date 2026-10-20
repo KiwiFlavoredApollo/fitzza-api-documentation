@@ -3221,45 +3221,6 @@ paths:
                 oneOf:
                 - $ref: '#/components/schemas/VtonError'
                 - $ref: '#/components/schemas/GatewayError'
-  /vton/{fittingId}/image:
-    parameters:
-    - name: fittingId
-      in: path
-      required: true
-      schema:
-        type: integer
-        format: int64
-    get:
-      tags:
-      - 피팅
-      summary: 피팅 결과 PNG 이미지 조회
-      operationId: getVtonFittingImage
-      description: "완료된 피팅의 결과를 PNG 이미지로 반환합니다. 서비스 자체의 인증·소유권 검사는 없습니다."
-
-      externalDocs:
-        description: develop 구현 확인 (2026-10-20, 17deb3f)
-        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
-      security: []
-      responses:
-        '200':
-          description: PNG 이미지
-          content:
-            image/png:
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: 피팅이 없거나 삭제됨, 미완료 또는 결과 파일 없음.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VtonError'
-        '422':
-          description: 요청 본문·경로·쿼리·헤더 검증 실패.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VtonValidationError'
   /vton/clothing-transfer:
     post:
       tags:
