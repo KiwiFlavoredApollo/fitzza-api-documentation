@@ -3558,66 +3558,430 @@ paths:
   /vton:
     post:
       tags:
-        - 피팅
+      - 피팅
       summary: 피팅 작업 생성
       operationId: postApiVton
-      description: |-
-        작업 ID 즉시 반환 후 비동기 생성. 완료·실패 시 알림 서비스로 이벤트 전달
+      description: '202 응답 후 상품 조회·이미지 합성을 비동기로 수행하고 완료·실패 알림을 전송합니다. photoId 생략 또는 null이면 기본 아바타를 사용합니다. 상품
+        ID는 중복 제거하며 상의·하의·아우터·신발·모자 카테고리별 하나만 허용합니다. 카테고리 중복 등 합성 중 오류는 FAILED 상태로 조회합니다.
 
-        FR-VTO-02, 03 / 담당: 경민 / FIX 안됨
 
-        시트 요청 표기: Body: photoId, productIds[]
-
-        시트 응답 표기: 202 { fittingId, status: PENDING }
-      x-source-row: 68
+        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       responses:
-        "202":
-          description: "202 { fittingId, status: PENDING }"
+        '202':
+          description: 피팅 작업 접수
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonCreateResponse'
+        '400':
+          description: 중복 제거 후 상품 개수 초과.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '404':
+          description: 사진이 없거나 본인의 사진이 아님.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '503':
+          description: 게이트웨이 인증 확인 불가.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
+        '401':
+          description: 사용자 헤더 누락·0 이하이면 {detail} 반환. 게이트웨이의 만료·무효 토큰 오류는 GatewayError 형식.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/VtonError'
+                - $ref: '#/components/schemas/GatewayError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VtonCreateRequest'
+      parameters:
+      - name: X-Request-Id
+        in: header
+        required: false
+        description: 상품·알림 서비스 호출에 전달할 추적 ID.
+        schema:
+          type: string
+  /vton/photos:
+    post:
+      tags:
+      - 피팅
+      summary: 사용자 전신 사진 등록
+      operationId: postVtonPhotos
+      description: 'PNG/JPEG/JPG/WEBP 이미지를 최대 15 MiB(15 × 1024 × 1024 바이트)까지 업로드합니다. 유효한 이미지를 PNG로 변환해 저장합니다.
+
+
+        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 사진 등록 완료
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonPhotoResponse'
+        '400':
+          description: 지원하지 않는 MIME 타입, 빈 파일, 용량 초과 또는 유효하지 않은 이미지.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
+        '401':
+          description: 사용자 헤더 누락·0 이하이면 {detail} 반환. 게이트웨이의 만료·무효 토큰 오류는 GatewayError 형식.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/VtonError'
+                - $ref: '#/components/schemas/GatewayError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+  /vton/photos/{photoId}:
+    parameters:
+    - name: photoId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    get:
+      tags:
+      - 피팅
+      summary: 사용자 전신 사진 조회
+      operationId: getVtonPhoto
+      description: '본인의 전신 사진을 PNG로 반환합니다.
+
+
+        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: PNG 이미지
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: 사진이 없거나 타인 소유이거나 이미지 파일이 없음.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
+        '401':
+          description: 사용자 헤더 누락·0 이하이면 {detail} 반환. 게이트웨이의 만료·무효 토큰 오류는 GatewayError 형식.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/VtonError'
+                - $ref: '#/components/schemas/GatewayError'
+  /vton/{fittingId}:
+    parameters:
+    - name: fittingId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    get:
+      tags:
+      - 피팅
+      summary: 피팅 결과 상세 조회
+      operationId: getVtonFitting
+      description: 'PENDING/COMPLETED/FAILED 상태와 결과 이미지 URL, 실패 메시지, 상품 목록을 조회합니다.
+
+
+        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 피팅 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonDetail'
+        '403':
+          description: 타인의 피팅 결과.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '404':
+          description: 존재하지 않거나 삭제된 피팅.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
+        '401':
+          description: 사용자 헤더 누락·0 이하이면 {detail} 반환. 게이트웨이의 만료·무효 토큰 오류는 GatewayError 형식.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/VtonError'
+                - $ref: '#/components/schemas/GatewayError'
+    delete:
+      tags:
+      - 피팅
+      summary: 피팅 기록 삭제
+      operationId: deleteVtonFitting
+      description: '본인의 피팅 기록을 소프트 삭제합니다. 이후 상세·이미지·내부 조회는 404를 반환합니다.
+
+
+        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: 삭제 완료. 응답 본문 없음.
+        '403':
+          description: 타인의 피팅 기록.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '404':
+          description: 존재하지 않거나 이미 삭제된 피팅.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
+        '401':
+          description: 사용자 헤더 누락·0 이하이면 {detail} 반환. 게이트웨이의 만료·무효 토큰 오류는 GatewayError 형식.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/VtonError'
+                - $ref: '#/components/schemas/GatewayError'
+  /vton/{fittingId}/image:
+    parameters:
+    - name: fittingId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    get:
+      tags:
+      - 피팅
+      summary: 피팅 결과 PNG 이미지 조회
+      operationId: getVtonFittingImage
+      description: 서비스에서 인증·소유권을 검사하지 않습니다. COMPLETED 상태의 이미지를 inline으로 반환합니다.
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security: []
+      responses:
+        '200':
+          description: PNG 이미지
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: 피팅이 없거나 삭제됨, 미완료 또는 결과 파일 없음.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
+  /vton/clothing-transfer:
+    post:
+      tags:
+      - 피팅
+      summary: '[테스트용] 실시간 다중 의류 가상 피팅'
+      operationId: postVtonClothingTransfer
+      description: 기본 아바타에 의류 이미지를 합성하고 PNG를 즉시 반환합니다. 서비스 인증 검사는 없습니다. categories_json은 JSON 배열 문자열 또는 쉼표 구분
+        문자열이며 상의·하의·아우터·신발·모자를 중복 없이 1~5개 지정합니다. 이미지 개수와 순서가 카테고리와 일치해야 하며 파일당 최대 15 MiB입니다.
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security: []
+      responses:
+        '200':
+          description: PNG 이미지
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: 카테고리·이미지 개수 불일치, 중복·미지원 카테고리, 이미지·용량 오류.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '500':
+          description: 아바타·서버 설정 또는 처리 오류.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '502':
+          description: AI 이미지 생성 서버 통신 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - categories_json
+              - clothing_images
+              properties:
+                categories_json:
+                  type: string
+                  example: '["상의", "하의"]'
+                clothing_images:
+                  type: array
+                  minItems: 1
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: binary
+  /vton/jobs:
+    post:
+      tags:
+      - 피팅
+      summary: '[구현 준비용] 피팅 작업 ID 발급'
+      operationId: postVtonJobs
+      description: UUID 작업 ID와 QUEUED를 반환하는 스텁입니다. 실제 작업 큐·DB·이미지 생성과 연동되지 않습니다. 서비스 인증 검사는 없습니다.
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security: []
+      responses:
+        '202':
+          description: 작업 ID 발급
           content:
             application/json:
               schema:
                 type: object
+                required:
+                - job_id
                 properties:
-                  fittingId:
-                    type: integer
-                    format: int64
-                  status:
+                  job_id:
+                    type: string
+                    format: uuid
+                  state:
                     type: string
                     enum:
-                      - PENDING
-        "401":
-          description: 토큰 만료(TOKEN_EXPIRED) 또는 무효(INVALID_TOKEN).
+                    - QUEUED
+                    default: QUEUED
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GatewayError"
-        "503":
-          description: 인증 확인 불가(AUTH_UNAVAILABLE), 잠시 후 재시도.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GatewayError"
+                $ref: '#/components/schemas/VtonValidationError'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                photoId:
-                  type: integer
-                  format: int64
-                productIds:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
               required:
-                - photoId
-                - productIds
-      x-contract-status: draft
+              - user_id
+              - person_image_url
+              - product_image_url
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                person_image_url:
+                  type: string
+                  format: uri
+                product_image_url:
+                  type: string
+                  format: uri
   /users/{userId}/body:
     get:
       tags:
@@ -4166,56 +4530,59 @@ paths:
                 - optionId
                 - sizeFeedback
   /fittings/{fittingId}:
+    servers:
+    - url: http://localhost:8091
+      description: vton-service 직접 호출 (배포 환경에 맞게 변경)
+    parameters:
+    - name: fittingId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    - name: userId
+      in: query
+      required: true
+      schema:
+        type: integer
+        format: int64
     get:
       tags:
-        - 내부 통신
-      summary: 피팅 결과 조회
+      - 내부 통신
+      summary: 커뮤니티 공유용 피팅 결과 조회
       operationId: getInternalFittingsFittingId
-      description: |-
-        커뮤니티 공유 초안용
-
-        호출: 커뮤니티(지현) → 제공: 피팅(경민) / FR-COM-04
-
-        시트 요청 표기: Path: fittingId / Query: userId
-
-        시트 응답 표기: 200 { owned, status, resultImageUrl, products[] }
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
-      x-source-row: 81
-      security: []
+      description: community-service 전용. X-Service-Token으로 community 호출자를 검증합니다. userId가 소유자와 달라도 200 응답의 owned=false로
+        반환합니다. resultImageUrl은 COMPLETED 상태에서만 유효합니다. 게이트웨이를 거치지 않고 vton-service의 /fittings/{fittingId}로 직접 호출합니다.
+      externalDocs:
+        description: develop 구현 확인 (2026-10-20, 17deb3f)
+        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
+      security:
+      - vtonServiceToken: []
       responses:
-        "200":
-          description: 200 { owned, status, resultImageUrl, products[] }
+        '200':
+          description: 소유권 및 피팅 결과
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  owned:
-                    type: boolean
-                  status:
-                    type: string
-                  resultImageUrl:
-                    type: string
-                    format: uri
-                  products:
-                    type: array
-                    items:
-                      type: object
-                      additionalProperties: true
-      parameters:
-        - name: fittingId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: userId
-          in: query
-          required: true
-          schema:
-            type: integer
-            format: int64
+                $ref: '#/components/schemas/VtonInternalResult'
+        '401':
+          description: 서비스 토큰 누락 또는 무효.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '404':
+          description: 존재하지 않거나 삭제된 피팅.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonError'
+        '422':
+          description: 요청 본문·경로·쿼리·헤더 검증 실패.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VtonValidationError'
   /product-options:
     get:
       tags:
@@ -4356,7 +4723,203 @@ components:
       type: apiKey
       in: header
       name: X-Internal-Token
+    vtonServiceToken:
+      type: apiKey
+      in: header
+      name: X-Service-Token
+      description: community-service 전용 서비스 토큰.
   schemas:
+    VtonCreateRequest:
+      type: object
+      required:
+      - productIds
+      properties:
+        photoId:
+          type: integer
+          format: int64
+          nullable: true
+          default: null
+          description: 본인의 전신 사진 ID. 생략/null이면 기본 아바타.
+        productIds:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: integer
+            format: int64
+          example:
+          - 101
+          - 201
+    VtonCreateResponse:
+      type: object
+      required:
+      - fittingId
+      properties:
+        fittingId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+          - PENDING
+          default: PENDING
+    VtonPhotoResponse:
+      type: object
+      required:
+      - photoId
+      - userId
+      - photoUrl
+      - createdAt
+      properties:
+        photoId:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        photoUrl:
+          type: string
+          description: PUBLIC_BASE_URL 설정 시 절대 URL, 미설정 시 /api/vton/photos/{photoId} 상대 경로.
+        createdAt:
+          type: string
+          format: date-time
+    VtonProduct:
+      type: object
+      required:
+      - productId
+      - productName
+      - price
+      - imageUrl
+      - categoryName
+      properties:
+        productId:
+          type: integer
+          format: int64
+        productName:
+          type: string
+        price:
+          type: integer
+          format: int64
+          description: 상품 가격(원).
+        imageUrl:
+          type: string
+        categoryName:
+          type: string
+          description: 상의, 하의, 아우터, 신발, 모자
+    VtonInternalProduct:
+      type: object
+      required:
+      - productId
+      - productName
+      - price
+      - imageUrl
+      properties:
+        productId:
+          type: integer
+          format: int64
+        productName:
+          type: string
+        price:
+          type: integer
+          format: int64
+        imageUrl:
+          type: string
+    VtonStatus:
+      type: string
+      enum:
+      - PENDING
+      - COMPLETED
+      - FAILED
+    VtonDetail:
+      type: object
+      required:
+      - fittingId
+      - userId
+      - status
+      - createdAt
+      - updatedAt
+      properties:
+        fittingId:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        photoId:
+          type: integer
+          format: int64
+          nullable: true
+        status:
+          $ref: '#/components/schemas/VtonStatus'
+        resultImageUrl:
+          type: string
+          nullable: true
+          description: 완성 이미지 URL. PUBLIC_BASE_URL 미설정 시 /api/vton/{fittingId}/image 상대 경로.
+        errorMessage:
+          type: string
+          nullable: true
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/VtonProduct'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    VtonInternalResult:
+      type: object
+      required:
+      - owned
+      - status
+      properties:
+        owned:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/VtonStatus'
+        resultImageUrl:
+          type: string
+          nullable: true
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/VtonInternalProduct'
+    VtonError:
+      type: object
+      required:
+      - detail
+      properties:
+        detail:
+          type: string
+    VtonValidationError:
+      type: object
+      required:
+      - detail
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            required:
+            - loc
+            - msg
+            - type
+            properties:
+              loc:
+                type: array
+                items:
+                  oneOf:
+                  - type: string
+                  - type: integer
+              msg:
+                type: string
+              type:
+                type: string
+              input: {}
+              ctx:
+                type: object
+                additionalProperties: true
     SignupConflict:
       type: object
       additionalProperties: false
