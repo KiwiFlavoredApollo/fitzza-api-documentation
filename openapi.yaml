@@ -45,18 +45,7 @@ paths:
         - 회원
       summary: 회원가입
       operationId: postApiAuthSignup
-      description: |-
-        이메일 형식·비밀번호 규칙 검증, 비밀번호 BCrypt 저장, 빈 신체정보 행 생성.
-        이메일과 닉네임 중복을 모두 검사하며, 하나라도 중복되면 가입하지 않고 409를 반환합니다.
-        이메일·닉네임 중복 모두 동일한 DUPLICATE_VALUE 코드를 사용하고 errors 배열에 중복된 모든 필드와 원인을 전달합니다.
-
-        FR-ACC-01 / 담당: 지현 / 409: 이메일·닉네임 중복
-
-        시트 요청 표기: Body: email, password, nickname
-
-        시트 응답 표기: 201 { userId }
-
-        /auth/**는 Gateway 토큰 검증 없이 통과합니다.
+      description: "이메일과 닉네임을 확인해 회원을 등록합니다. 중복 항목이 있으면 가입을 거부하고 해당 필드와 원인을 반환합니다."
       x-source-row: 2
       security: []
       responses:
@@ -130,18 +119,7 @@ paths:
         - 회원
       summary: 로그인
       operationId: postApiAuthSignin
-      description: >-
-        Access Token과 Refresh Token 발급. Refresh Token은 Redis에 저장(유효기간 동안 보관). ACTIVE 계정만 허용. Access Token에는
-        사용자 ID만 담음
-
-
-        FR-ACC-01 / 담당: 지현 / 401: 이메일·비밀번호 구분 없는 통합 오류
-
-
-        시트 요청 표기: Body: email, password
-
-
-        시트 응답 표기: 200 { accessToken, refreshToken, userId, nickname }
+      description: "이메일과 비밀번호로 로그인하고 Access Token과 Refresh Token을 발급합니다. 활성 계정만 로그인할 수 있습니다."
       x-source-row: 5
       security: []
       responses:
@@ -191,18 +169,7 @@ paths:
         - 회원
       summary: 토큰 재발급
       operationId: postApiAuthRefresh
-      description: >-
-        Redis의 Refresh Token을 확인하고 Access Token과 Refresh Token을 새로 발급. 사용한 Refresh Token은 즉시 폐기(재사용 불가). 정지·탈퇴
-        계정은 거부
-
-
-        FR-ACC-01 / 담당: 지현 / 401: 없거나 만료됐거나 이미 사용한 Refresh Token
-
-
-        시트 요청 표기: Body: refreshToken
-
-
-        시트 응답 표기: 200 { accessToken, refreshToken }
+      description: "유효한 Refresh Token으로 토큰을 재발급하고 사용한 Refresh Token을 폐기합니다."
       x-source-row: 6
       security: []
       responses:
@@ -240,18 +207,7 @@ paths:
         - 회원
       summary: 로그아웃
       operationId: postApiAuthSignout
-      description: >-
-        Redis의 Refresh Token 삭제. Authorization 헤더로 Access Token이 같이 오면 그 토큰도 남은 만료 시간 동안 Redis 블랙리스트에 올려 즉시
-        차단. Access Token이 만료된 뒤에도 로그아웃할 수 있도록 Refresh Token만 필수
-
-
-        FR-ACC-03 / 담당: 지현 / 재요청도 200(멱등) / 헤더 없이 보내면 Access Token은 만료(최대 15분)까지 유효 — FE는 로그아웃 때 헤더를 함께 전송
-
-
-        시트 요청 표기: Body: refreshToken / Header: Authorization: Bearer {accessToken} (선택)
-
-
-        시트 응답 표기: 200
+      description: "Refresh Token을 폐기합니다. Access Token도 전달하면 남은 유효기간 동안 해당 토큰을 차단합니다."
       x-source-row: 7
       security:
         - null
@@ -276,18 +232,7 @@ paths:
         - 프로필
       summary: 내 프로필 조회
       operationId: getApiUsersMe
-      description: >-
-        미입력 항목은 null
-
-
-        FR-PRF-02 / 담당: 지현
-
-
-        시트 요청 표기: -
-
-
-        시트 응답 표기: 200 { email, nickname, height, weight, gender, preferredFit,
-        preferredStyles[], shoeSize }
+      description: "현재 사용자의 프로필과 신체 정보를 조회합니다. 입력하지 않은 항목은 null로 반환합니다."
       x-source-row: 10
       security:
         - bearerAuth: []
@@ -331,14 +276,7 @@ paths:
         - 프로필
       summary: 프로필 저장·수정·삭제
       operationId: patchApiUsersMe
-      description: |-
-        온보딩 저장과 수정에 공통 사용. 미전달 필드는 유지, null 전달 시 해당 값 삭제
-
-        FR-PRF-01, 02 / 담당: 지현 / 400: 단위·허용 범위 오류
-
-        시트 요청 표기: Body: height, weight, gender, preferredFit, preferredStyles[], shoeSize (모두 선택)
-
-        시트 응답 표기: 200 { height, weight, gender, preferredFit, preferredStyles[], shoeSize }
+      description: "현재 사용자의 프로필을 저장하거나 수정합니다. 생략한 필드는 유지하고 null로 전달한 값은 삭제합니다."
       x-source-row: 11
       security:
         - bearerAuth: []
@@ -411,14 +349,7 @@ paths:
         - 설문
       summary: 사이즈 설문 작성
       operationId: postApiSurveys
-      description: |-
-        주문 서비스에서 본인 주문 항목 확인 후 저장, 추천 서비스로 선호 실측 갱신 전달
-
-        FR-ORD-02 / 담당: 지현 / 403: 타인 주문, 409: 이미 작성
-
-        시트 요청 표기: Body: orderItemId, sizeFeedback(SMALL/FIT/BIG)
-
-        시트 응답 표기: 201 { surveyId }
+      description: "본인의 주문 항목에 대한 사이즈 설문을 저장하고 추천에 사용할 선호 실측 정보를 갱신합니다."
       x-source-row: 12
       security:
         - bearerAuth: []
@@ -482,14 +413,7 @@ paths:
         - 설문
       summary: 내 설문 조회
       operationId: getApiSurveysMe
-      description: |-
-        주문 내역 화면에서 설문 작성 여부 표시용
-
-        FR-ORD-02 / 담당: 지현
-
-        시트 요청 표기: Query: orderItemIds (쉼표 구분)
-
-        시트 응답 표기: 200 [{ surveyId, orderItemId, sizeFeedback }]
+      description: "선택한 주문 항목에 대해 현재 사용자가 작성한 사이즈 설문을 조회합니다."
       x-source-row: 14
       security:
         - bearerAuth: []
@@ -540,21 +464,7 @@ paths:
         - 커뮤니티
       summary: 게시글 목록
       operationId: getApiPosts
-      description: >-
-        최신순, 삭제 글 제외, 결과 없으면 빈 목록
-
-
-        FR-COM-05 / 담당: 지현
-
-
-        시트 요청 표기: Query: category(FASHION/COORDI_QUESTION/DAILY), postType(VOTE), keyword, page, size
-
-
-        시트 응답 표기: 200 { content: [{ postId, title, category, postType, nickname, createdAt, thumbnailUrl,
-        likeCount, commentCount }], page, totalPages }
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "조건에 맞는 게시글을 최신순으로 조회합니다. 삭제된 글은 제외하고 결과가 없으면 빈 목록을 반환합니다."
       x-source-row: 15
       security: []
       responses:
@@ -633,14 +543,7 @@ paths:
         - 커뮤니티
       summary: 게시글 작성
       operationId: postApiPosts
-      description: |-
-        일반 글. 공유 글이면 공유 대상 소유 확인 후 스냅샷 저장
-
-        FR-COM-01, 04 / 담당: 지현
-
-        시트 요청 표기: Body: title, content, category, imageUrl, sharedType, sharedId
-
-        시트 응답 표기: 201 { postId }
+      description: "게시글을 작성합니다. 공유 게시글은 공유 대상의 소유권을 확인하고 스냅샷을 저장합니다."
       x-source-row: 17
       security:
         - bearerAuth: []
@@ -702,21 +605,7 @@ paths:
         - 커뮤니티
       summary: 게시글 상세
       operationId: getApiPostsPostId
-      description: >-
-        조회수 증가. 로그인 시 liked 포함
-
-
-        FR-COM-01 / 담당: 지현 / 404: 없거나 삭제된 글
-
-
-        시트 요청 표기: Path: postId
-
-
-        시트 응답 표기: 200 { postId, title, content, category, postType, author, imageUrl, shared: { type, id,
-        snapshot }, voteOptions[], voteEndAt, voteClosed, likeCount, liked, viewCount, createdAt }
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "게시글 상세 정보를 조회하고 조회수를 증가시킵니다. 로그인한 경우 사용자의 좋아요 여부도 반환합니다."
       x-source-row: 16
       security:
         - null
@@ -819,14 +708,7 @@ paths:
         - 커뮤니티
       summary: 게시글 수정
       operationId: patchApiPostsPostId
-      description: |-
-        작성자만. 투표 참여가 있으면 options 수정 거부
-
-        FR-COM-01, 06 / 담당: 지현 / 403, 409 / 409 CONCURRENT_UPDATE: 다른 수정·삭제 요청과 겹침 — 새로고침 후 재시도
-
-        시트 요청 표기: Path: postId / Body: title, content, category, imageUrl, options[] (투표글)
-
-        시트 응답 표기: 200
+      description: "본인이 작성한 게시글을 수정합니다. 투표 참여자가 있으면 투표 선택지는 변경할 수 없습니다."
       x-source-row: 19
       security:
         - bearerAuth: []
@@ -910,14 +792,7 @@ paths:
         - 커뮤니티
       summary: 게시글 삭제
       operationId: deleteApiPostsPostId
-      description: |-
-        작성자만, soft delete
-
-        FR-COM-01 / 담당: 지현 / 403 / 409 CONCURRENT_UPDATE: 다른 수정·삭제 요청과 겹침 — 새로고침 후 재시도
-
-        시트 요청 표기: Path: postId
-
-        시트 응답 표기: 204
+      description: "본인이 작성한 게시글을 소프트 삭제합니다."
       x-source-row: 20
       security:
         - bearerAuth: []
@@ -961,7 +836,8 @@ paths:
         - 커뮤니티
       summary: 게시글 좋아요 조회
       operationId: getApiPostsPostIdLikes
-      description: 게시글의 좋아요 수와 현재 사용자의 좋아요 여부를 조회합니다.
+      description: "게시글의 좋아요 수와 현재 사용자의 좋아요 여부를 조회합니다."
+
       security:
         - bearerAuth: []
       responses:
@@ -1000,14 +876,7 @@ paths:
         - 커뮤니티
       summary: 게시글 좋아요
       operationId: postApiPostsPostIdLikes
-      description: |-
-        사용자당 1회, 재요청도 같은 결과
-
-        FR-COM-05 / 담당: 지현
-
-        시트 요청 표기: Path: postId
-
-        시트 응답 표기: 200 { likeCount }
+      description: "게시글에 좋아요를 등록합니다. 이미 등록한 경우에도 같은 결과를 반환합니다."
       x-source-row: 23
       security:
         - bearerAuth: []
@@ -1045,14 +914,7 @@ paths:
         - 커뮤니티
       summary: 게시글 좋아요 취소
       operationId: deleteApiPostsPostIdLikes
-      description: |-
-        없는 좋아요 취소도 같은 결과
-
-        FR-COM-05 / 담당: 지현
-
-        시트 요청 표기: Path: postId
-
-        시트 응답 표기: 200 { likeCount }
+      description: "게시글의 좋아요를 취소합니다. 등록된 좋아요가 없어도 같은 결과를 반환합니다."
       x-source-row: 24
       security:
         - bearerAuth: []
@@ -1091,14 +953,7 @@ paths:
         - 투표
       summary: 투표 참여
       operationId: postPostsPostIdPollVotes
-      description: |-
-        한 사용자 1회, 재요청은 같은 결과
-
-        FR-COM-03 / 담당: 지현 / 400: 투표글 아님, 409: 마감됨
-
-        시트 요청 표기: Path: postId / Body: voteOptionId
-
-        시트 응답 표기: 200 { voteOptionId }
+      description: "투표 선택지에 투표합니다. 사용자당 한 번만 참여할 수 있으며 재요청은 같은 결과를 반환합니다."
       x-source-row: 25
       security:
         - bearerAuth: []
@@ -1162,21 +1017,7 @@ paths:
         - 투표
       summary: 투표 결과 조회
       operationId: getPostsPostIdPoll
-      description: >-
-        비로그인도 조회 가능, 로그인 시 내 선택 포함. supportCommentCount는 해당 선택지를 추천한 댓글 수(Jev 판정)
-
-
-        FR-COM-03 / 담당: 지현
-
-
-        시트 요청 표기: Path: postId
-
-
-        시트 응답 표기: 200 { options: [{ voteOptionId, label(A~D), count, ratio, supportCommentCount }], total,
-        voteEndAt, closed, myVoteOptionId }
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "투표 선택지별 집계와 지지 댓글 수를 조회합니다. 로그인한 경우 사용자가 선택한 항목도 반환합니다."
       x-source-row: 26
       security:
         - {}
@@ -1233,14 +1074,7 @@ paths:
         - 투표
       summary: 투표 조기 종료
       operationId: patchPostsPostIdPoll
-      description: |-
-        작성자만 종료할 수 있습니다. closed: true로 종료하며, 이미 종료된 투표에도 같은 성공 응답을 반환합니다. 재개는 허용하지 않습니다.
-
-        FR-COM-06 / 담당: 지현 / 403
-
-        요청: Path: postId / Body: { closed: true }
-
-        시트 응답 표기: 200 { closed: true }
+      description: "작성자가 투표를 조기 종료합니다. 이미 종료된 투표에도 성공 응답을 반환하며 재개는 허용하지 않습니다."
       x-source-row: 27
       security:
         - bearerAuth: []
@@ -1304,22 +1138,7 @@ paths:
         - 댓글
       summary: 댓글 목록
       operationId: getApiPostsPostIdComments
-      description: >-
-        답글 포함 계층 구조, 삭제된 댓글은 '삭제된 댓글입니다'. 투표글은 댓글이 추천하는 선택지(supportedOptionId)를 함께 반환 — Jev 확률이 기준값 이상일 때만,
-        아니면 null
-
-
-        FR-COM-02 / 담당: 지현
-
-
-        시트 요청 표기: Path: postId / Query: supportedOptionId (선택, 투표글에서 해당 선택지를 추천한 댓글만)
-
-
-        시트 응답 표기: 200 [{ commentId, content, author, likeCount, liked, isDeleted, supportedOptionId,
-        createdAt, replies: [...] }]
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "게시글의 댓글과 답글을 계층 구조로 조회합니다. 투표글에서는 댓글이 지지하는 선택지도 반환합니다."
       x-source-row: 28
       security:
         - null
@@ -1352,18 +1171,7 @@ paths:
         - 댓글
       summary: 댓글·답글 작성
       operationId: postApiPostsPostIdComments
-      description: >-
-        답글은 1단계까지. 게시글 작성자에게 댓글 알림 전달(본인 제외) — 알림 서비스 내부 API 호출. 투표글이면 저장 후 비동기로 Jev에 지지 선택지 판정 요청(실패해도 댓글 작성은
-        성공)
-
-
-        FR-COM-02, NOT-03 / 담당: 지현 / 400: 빈 댓글·500자 초과, 404: 게시글 없음
-
-
-        시트 요청 표기: Path: postId / Body: content, parentCommentId(답글일 때)
-
-
-        시트 응답 표기: 201 { commentId }
+      description: "댓글 또는 한 단계 답글을 작성하고 게시글 작성자에게 알립니다. 투표글은 댓글의 지지 선택지를 비동기로 판정합니다."
       x-source-row: 29
       security:
         - bearerAuth: []
@@ -1432,14 +1240,7 @@ paths:
         - 댓글
       summary: 댓글 수정
       operationId: patchApiCommentsCommentId
-      description: |-
-        작성자만. 투표글이면 지지 선택지를 다시 판정
-
-        FR-COM-02 / 담당: 지현 / 400: 빈 댓글·500자 초과, 403 / 409 CONCURRENT_UPDATE: 다른 수정·삭제 요청과 겹침 — 새로고침 후 재시도
-
-        시트 요청 표기: Path: commentId / Body: content
-
-        시트 응답 표기: 200
+      description: "본인이 작성한 댓글을 수정합니다. 투표글의 댓글은 지지 선택지를 다시 판정합니다."
       x-source-row: 30
       security:
         - bearerAuth: []
@@ -1503,14 +1304,7 @@ paths:
         - 댓글
       summary: 댓글 삭제
       operationId: deleteApiCommentsCommentId
-      description: |-
-        작성자만, soft delete
-
-        FR-COM-02 / 담당: 지현 / 403 / 409 CONCURRENT_UPDATE: 다른 수정·삭제 요청과 겹침 — 새로고침 후 재시도
-
-        시트 요청 표기: Path: commentId
-
-        시트 응답 표기: 204
+      description: "본인이 작성한 댓글을 소프트 삭제합니다."
       x-source-row: 31
       security:
         - bearerAuth: []
@@ -1554,7 +1348,8 @@ paths:
         - 댓글
       summary: 댓글 좋아요 조회
       operationId: getApiCommentsCommentIdLike
-      description: 댓글의 좋아요 수와 현재 사용자의 좋아요 여부를 조회합니다.
+      description: "댓글의 좋아요 수와 현재 사용자의 좋아요 여부를 조회합니다."
+
       security:
         - bearerAuth: []
       responses:
@@ -1594,14 +1389,7 @@ paths:
         - 댓글
       summary: 댓글 좋아요
       operationId: postApiCommentsCommentIdLikes
-      description: |-
-        사용자당 1회, 재요청도 같은 결과
-
-        FR-COM-02 / 담당: 지현
-
-        시트 요청 표기: Path: commentId
-
-        시트 응답 표기: 200 { likeCount }
+      description: "댓글에 좋아요를 등록합니다. 이미 등록한 경우에도 같은 결과를 반환합니다."
       x-source-row: 32
       security:
         - bearerAuth: []
@@ -1639,14 +1427,7 @@ paths:
         - 댓글
       summary: 댓글 좋아요 취소
       operationId: deleteApiCommentsCommentIdLikes
-      description: |-
-        없는 좋아요 취소도 같은 결과
-
-        FR-COM-02 / 담당: 지현
-
-        시트 요청 표기: Path: commentId
-
-        시트 응답 표기: 200 { likeCount }
+      description: "댓글의 좋아요를 취소합니다. 등록된 좋아요가 없어도 같은 결과를 반환합니다."
       x-source-row: 33
       security:
         - bearerAuth: []
@@ -1685,18 +1466,7 @@ paths:
         - 알림
       summary: 알림 목록
       operationId: getApiNotifications
-      description: >-
-        최신순
-
-
-        FR-NOT-00 / 담당: 지현
-
-
-        시트 요청 표기: Query: page, size
-
-
-        시트 응답 표기: 200 { content: [{ notificationId, type, content, targetId, isRead, createdAt }], page,
-        totalPages }
+      description: "현재 사용자의 알림을 최신순으로 조회합니다."
       x-source-row: 34
       security:
         - bearerAuth: []
@@ -1762,14 +1532,7 @@ paths:
         - 알림
       summary: 알림 읽음 처리
       operationId: patchApiNotificationsNotificationIdRead
-      description: |-
-        본인 알림만
-
-        FR-NOT-00 / 담당: 지현 / 403
-
-        시트 요청 표기: Path: notificationId / Body: notificationId, type, content, targetId, isRead, createdAt (모두 선택)
-
-        시트 응답 표기: 200
+      description: "현재 사용자의 알림을 읽음 상태로 변경합니다."
       x-source-row: 36
       security:
         - bearerAuth: []
@@ -1829,37 +1592,7 @@ paths:
         - 상품
       summary: 카테고리 트리 조회
       operationId: getApiCategories
-      description: |-
-        카테고리 단계 탐색(상의 > 긴팔 > 셔츠)용   예시) [
-          [
-          {
-            "code": "001",
-            "name": "상의",
-            "children": [
-              {
-                "code": "001001",
-                "name": "반소매 티셔츠",
-                "children": []
-              },
-              {
-                "code": "001002",
-                "name": "셔츠/블라우스",
-                "children": []
-              },
-              {
-                "code": "001003",
-                "name": "피케/카라 티셔츠",
-                "children": []
-              },..]
-
-        FR-CAT-01 / 담당: 주희
-
-        시트 요청 표기: -
-
-        시트 응답 표기: 응답 (200 OK):
-        [{ code, name, children: [{ code, name, children: [] }] }]
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "상품 카테고리를 상위·하위 카테고리가 포함된 트리 구조로 조회합니다."
       x-source-row: 38
       security: []
       responses:
@@ -1879,32 +1612,7 @@ paths:
         - 상품
       summary: 상품 목록
       operationId: getApiProducts
-      description: >-
-        category 길이 3은 대분류, 6은 중분류, 9는 소분류. 없으면 노출 상품 전체(HIDDEN 제외).
-
-        sort는 TIME_DESC(최신, productId 내림차순), PRICE_ASC(낮은 가격, productId 내림차순).
-
-        잘못된 sort는 TIME_DESC. 결과 없으면 content는 빈 배열.
-
-
-        FR-CAT-01, 02 / 담당: 주희
-
-
-        시트 요청 표기: Query: categoryL1(코드), categoryL2(코드), subcategory(코드), sort(PRICE_ASC/TIME_DESC), page,
-        sizeQuery: category(코드, 선택), sort(TIME_DESC/PRICE_ASC, 기본 TIME_DESC), page, size
-
-
-        시트 응답 표기: 200 {
-          content: [{ productId, productName, brandName, price, thumbnailUrl, status }],
-          page, size, totalElements, totalPages, hasNext, sort
-        }
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
-
-
-        시트의 Query 열에 구형 categoryL1/categoryL2/subcategory와 신규 category가 이어 붙어 있습니다. 설명 열의 코드 길이 규칙과 README의 통합
-        결정을 반영해 category로 모델링했습니다.
+      description: "카테고리와 정렬 조건에 맞는 상품 목록을 조회합니다. 숨김 상품은 제외하고 결과가 없으면 빈 목록을 반환합니다."
       x-source-row: 39
       security: []
       responses:
@@ -1980,23 +1688,7 @@ paths:
         - 상품
       summary: 상품 상세
       operationId: getApiProductsProductId
-      description: >-
-        옵션별 실측 포함, 없는 속성은 null, 로그인 시 wished 포함
-
-
-        FR-CAT-03 / 담당: 주희 / 404
-
-
-        시트 요청 표기: Path: productId
-
-
-        시트 응답 표기: 200 { productId, productName, productNameEn, styleNo, brandId, brandName, brandNameEn,
-        categoryL1, categoryL2, subcategory, categoryCode, categoryL1Name, categoryL2Name, subcategoryName,
-        price, normalPrice, discountRate, gender, season, material, fitType, features, description,
-        thumbnailUrl, images[], sizeGuide, options[], status, createdAt, updatedAt }
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "상품 상세 정보와 옵션별 실측을 조회합니다. 로그인한 경우 사용자의 찜 여부도 반환합니다."
       x-source-row: 40
       security:
         - null
@@ -2109,18 +1801,7 @@ paths:
         - 찜
       summary: 찜 목록
       operationId: getApiWishlists
-      description: >-
-        단품과 AI 추천 코디 함께 조회, 투표 글쓰기의 찜 카테고리별 조회에도 사용
-
-
-        FR-WISH-01, COM-06 / 담당: 주희
-
-
-        시트 요청 표기: Query: page, size
-
-
-        시트 응답 표기: 200 { content: [{ wishlistId, itemId, name, price, imageUrl, categoryL1, createdAt }], page,
-        size, totalElements, totalPages, hasNext }
+      description: "현재 사용자가 찜한 단품 상품과 AI 추천 코디를 조회합니다."
       x-source-row: 41
       security:
         - bearerAuth: []
@@ -2194,14 +1875,7 @@ paths:
         - 찜
       summary: 찜 추가
       operationId: postApiWishlists
-      description: |-
-        이미 있으면 기존 항목 반환(중복 행 없음)
-
-        FR-WISH-01 / 담당: 주희
-
-        시트 요청 표기: Body: { itemId }
-
-        시트 응답 표기: 200 { wishlistId } (이미 있으면 기존 ID)
+      description: "상품 또는 코디를 찜 목록에 추가합니다. 이미 등록한 항목은 기존 정보를 반환합니다."
       x-source-row: 42
       security:
         - bearerAuth: []
@@ -2245,14 +1919,7 @@ paths:
         - 찜
       summary: 찜 해제
       operationId: deleteApiWishlists
-      description: |-
-        없는 항목 해제도 같은 결과
-
-        FR-WISH-01 / 담당: 주희
-
-        시트 요청 표기: Query: itemId
-
-        시트 응답 표기: 204 (없어도 204)
+      description: "상품 또는 코디를 찜 목록에서 제거합니다. 등록되지 않은 항목에도 같은 결과를 반환합니다."
       x-source-row: 43
       security:
         - bearerAuth: []
@@ -2284,18 +1951,7 @@ paths:
         - 장바구니
       summary: 장바구니 조회
       operationId: getApiCarts
-      description: >-
-        상품별 금액을 포함한 장바구니 항목 배열
-
-
-        FR-CART-02 / 담당: 주희
-
-
-        시트 요청 표기: -
-
-
-        시트 응답 표기: 200 [{ cartId, optionId, quantity, available, productId, brandName, productName,
-        color, size, imageUrl, unitPrice, linePrice }]
+      description: "현재 사용자의 장바구니 항목과 상품별 금액을 조회합니다."
       x-source-row: 44
       security:
         - bearerAuth: []
@@ -2355,14 +2011,7 @@ paths:
         - 장바구니
       summary: 장바구니 추가
       operationId: postApiCarts
-      description: |-
-        같은 옵션이면 새 행 대신 수량 합산
-
-        FR-CART-01 / 담당: 주희 / 400: 옵션 오류·수량 1 미만
-
-        시트 요청 표기: Body: { optionId, quantity }
-
-        시트 응답 표기: 201 { cartId, optionId, quantity, ... } (같은 옵션이면 수량 합산)
+      description: "장바구니에 상품 옵션을 추가합니다. 같은 옵션이 있으면 수량을 합산합니다."
       x-source-row: 45
       security:
         - bearerAuth: []
@@ -2413,14 +2062,7 @@ paths:
         - 장바구니
       summary: 장바구니 수정
       operationId: patchApiCartsCartId
-      description: |-
-        본인 항목만, 수정 후 합계 재계산
-
-        FR-CART-02 / 담당: 주희 / 403
-
-        시트 요청 표기: Body: { optionId, quantity } 둘 다 필수
-
-        시트 응답 표기: 200 해당 항목. totalPrice는 장바구니 전체가 아니라 항목 linePrice
+      description: "본인의 장바구니 항목을 수정하고 합계 금액을 다시 계산합니다."
       x-source-row: 46
       security:
         - bearerAuth: []
@@ -2477,14 +2119,7 @@ paths:
         - 장바구니
       summary: 장바구니 삭제
       operationId: deleteApiCartsCartId
-      description: |-
-        본인 항목만
-
-        FR-CART-02 / 담당: 주희 / 403
-
-        시트 요청 표기: Path: cartId
-
-        시트 응답 표기: 204 (없으면 404)
+      description: "본인의 장바구니 항목을 삭제합니다."
       x-source-row: 47
       security:
         - bearerAuth: []
@@ -2528,18 +2163,7 @@ paths:
         - 월드컵
       summary: 월드컵 결과 저장
       operationId: postApiWorldcups
-      description: >-
-        완료할 때마다 새 이력 저장, 찜 목록은 유지
-
-
-        FR-CART-03 / 담당: 주희
-
-
-        시트 요청 표기: Body: { winnerProductId, candidateProductIds[] }
-
-
-        시트 응답 표기: 201 { worldcupHistoryId, winnerProduct: { productId, brandName, productName, price,
-        imageUrl, status }, completedAt }
+      description: "월드컵 완료 시 우승 결과를 새 이력으로 저장합니다. 기존 찜 목록은 유지합니다."
       x-source-row: 48
       security:
         - bearerAuth: []
@@ -2611,16 +2235,7 @@ paths:
         - 월드컵
       summary: 현재 우승 상품 조회
       operationId: getApiWorldcupsLatest
-      description: |-
-        가장 최근 우승 상품만, 없으면 null
-
-        FR-CART-03 / 담당: 주희
-
-        시트 요청 표기: -
-
-        시트 응답 표기: 200 위와 동일 형태. 없으면 404 (null 아님)
-
-        시트 모순: 설명에는 결과가 없으면 null, 응답에는 404(null 아님)로 기재되어 있습니다. 응답 열의 404를 채택했으며 확인이 필요합니다.
+      description: "가장 최근 월드컵의 우승 상품을 조회합니다. 이력이 없으면 null을 반환합니다."
       x-source-row: 49
       security:
         - bearerAuth: []
@@ -2655,18 +2270,7 @@ paths:
         - 월드컵
       summary: 우승 이력 조회
       operationId: getApiWorldcupsHistory
-      description: >-
-        삭제 없이 보존되는 전체 이력
-
-
-        FR-CART-03 / 담당: 주희
-
-
-        시트 요청 표기: Query: page, size
-
-
-        시트 응답 표기: 200 { content: [{ worldcupHistoryId, winnerProduct, completedAt }], page, size,
-        totalElements, totalPages, hasNext }
+      description: "사용자의 월드컵 우승 이력 전체를 조회합니다."
       x-source-row: 50
       security:
         - bearerAuth: []
@@ -2746,14 +2350,7 @@ paths:
         - 주문
       summary: 주문 생성
       operationId: postApiOrders
-      description: |-
-        주문 시점 상품·옵션·수량·가격 스냅샷 저장, 결제창 없이 주문 성공 처리
-
-        FR-ORD-01 / 담당: 주희 / 400: 수량·배송 정보 누락
-
-        시트 요청 표기: Body: cartIds[], recipientName, recipientPhone, shippingAddress
-
-        시트 응답 표기: 201 { orderId, orderNum, totalPrice, orderStatus }
+      description: "주문 시점의 상품·옵션·수량·가격을 저장하고 주문을 생성합니다. 별도 결제 과정 없이 주문을 완료합니다."
       x-source-row: 51
       security:
         - bearerAuth: []
@@ -2820,18 +2417,7 @@ paths:
         - 주문
       summary: 주문 내역
       operationId: getApiOrders
-      description: >-
-        최신순
-
-
-        FR-ORD-02 화면용 / 담당: 주희
-
-
-        시트 요청 표기: Query: page, size
-
-
-        시트 응답 표기: 200 { content: [{ orderId, orderNum, totalPrice, orderStatus, createdAt, itemCount,
-        thumbnailUrl }], page, totalPages }
+      description: "현재 사용자의 주문 내역을 최신순으로 조회합니다."
       x-source-row: 52
       security:
         - bearerAuth: []
@@ -2899,18 +2485,7 @@ paths:
         - 주문
       summary: 주문 상세
       operationId: getApiOrdersOrderId
-      description: >-
-        본인 주문만
-
-
-        FR-ORD-02 화면용 / 담당: 주희 / 403
-
-
-        시트 요청 표기: Path: orderId
-
-
-        시트 응답 표기: 200 { orderId, orderNum, orderStatus, recipient, shippingAddress, items: [{ orderItemId,
-        productId, productName, color, size, orderQty, unitPrice }], totalPrice }
+      description: "현재 사용자의 주문 상세 정보를 조회합니다."
       x-source-row: 53
       security:
         - bearerAuth: []
@@ -2990,21 +2565,7 @@ paths:
         - 리뷰
       summary: 상품 리뷰 목록
       operationId: getApiReviews
-      description: >-
-        상품별 리뷰 페이징 조회. 정렬 조건 적용
-
-
-        Review Service / 담당: 지현
-
-
-        시트 요청 표기: Query: productId(필수), page, size, sort
-
-
-        시트 응답 표기: 200 { content: [{ reviewId, productId, userId, rating, content, imageUrl, createdAt }],
-        page, totalPages }
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "상품에 작성된 리뷰를 정렬 조건에 따라 페이지 단위로 조회합니다."
       x-source-row: 54
       security: []
       responses:
@@ -3071,14 +2632,7 @@ paths:
         - 리뷰
       summary: 리뷰 작성
       operationId: postApiReviews
-      description: |-
-        본인 주문 항목 및 상품 일치 여부 검증 후 등록. 내부 주문 항목 조회 API 재사용
-
-        Review Service / 담당: 지현 / 403: 타인 주문 / 409: 중복 리뷰
-
-        시트 요청 표기: Body: productId, orderItemId, rating, content, imageUrl(선택)
-
-        시트 응답 표기: 201 { reviewId }
+      description: "본인의 주문 항목과 상품이 일치하는지 확인하고 리뷰를 등록합니다."
       x-source-row: 55
       security:
         - bearerAuth: []
@@ -3149,14 +2703,7 @@ paths:
         - 리뷰
       summary: 리뷰 수정
       operationId: patchApiReviewsReviewId
-      description: |-
-        본인이 작성한 리뷰만 수정 가능. 미전달 필드는 유지
-
-        Review Service / 담당: 지현 / 403: 작성자 불일치 / 404: 리뷰 없음
-
-        시트 요청 표기: Path: reviewId / Body: rating, content, imageUrl(선택)
-
-        시트 응답 표기: 200 { reviewId, rating, content, imageUrl, updatedAt }
+      description: "본인이 작성한 리뷰를 수정합니다. 생략한 필드는 유지합니다."
       x-source-row: 56
       security:
         - bearerAuth: []
@@ -3232,14 +2779,7 @@ paths:
         - 리뷰
       summary: 리뷰 삭제
       operationId: deleteApiReviewsReviewId
-      description: |-
-        본인이 작성한 리뷰만 삭제 가능
-
-        Review Service / 담당: 지현 / 403: 작성자 불일치 / 404: 리뷰 없음
-
-        시트 요청 표기: Path: reviewId
-
-        시트 응답 표기: 204
+      description: "본인이 작성한 리뷰를 삭제합니다."
       x-source-row: 57
       security:
         - bearerAuth: []
@@ -3283,18 +2823,7 @@ paths:
         - 추천
       summary: 자연어 추천 요청
       operationId: postApiRecommendations
-      description: |-
-        비동기 처리. 로그인 시 신체 정보로 사이즈 필터 적용, 대화 전문 저장
-
-        FR-REC-01 / 담당: 경민 / 400: 빈 질의
-
-        시트 요청 표기: Body: query
-
-        시트 응답 표기: 202 { status, searchType, tpoSummary, items: [{ ..., color, size }] (단품 0~9개), combos: [{
-        comboId, items: [{ productId, productName, price, imageUrl, color, size, fitPercent, evidence }],
-        totalPrice, passStatus, harmonyScore, feedbackSummary, budgetExceeded }] (코디 2개), message }
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "자연어 요청으로 상품과 코디 추천을 비동기로 생성합니다. 신체 정보를 사이즈 필터에 활용하고 대화를 저장합니다."
       x-source-row: 59
       security:
         - null
@@ -3391,14 +2920,7 @@ paths:
         - 추천
       summary: 내 추천 대화 목록
       operationId: getApiRecommendations
-      description: |-
-        투표 글쓰기의 'AI 추천 대화별 조회'에도 사용
-
-        FR-REC-01, COM-06 / 담당: 경민
-
-        시트 요청 표기: Query: page, size
-
-        시트 응답 표기: 200 { content: [{ requestId, queryText, tpoSummary, createdAt }], page, totalPages }
+      description: "현재 사용자의 추천 대화 목록을 조회합니다."
       x-source-row: 61
       security:
         - bearerAuth: []
@@ -3458,22 +2980,7 @@ paths:
         - 추천
       summary: 추천 결과 조회
       operationId: getApiRecommendationsRequestId
-      description: >-
-        status가 DONE일 때 결과 포함, 해석 실패·결과 없음은 message로 안내, 대안은 신뢰도 낮음 표시
-
-
-        FR-REC-01 / 담당: 경민
-
-
-        시트 요청 표기: Path: requestId
-
-
-        시트 응답 표기: 200 { status, searchType, tpoSummary, items: [{ ..., color, size }] (단품 0~9개), combos: [{
-        comboId, items: [{ productId, productName, price, imageUrl, color, size, fitPercent, evidence }],
-        totalPrice, passStatus, harmonyScore, feedbackSummary, budgetExceeded }] (코디 2개), message }
-
-
-        Authorization 헤더를 보내면 Gateway 검증 대상이며 만료·무효 토큰은 401, 인증 확인 불가 시 503이 발생할 수 있습니다.
+      description: "추천 요청의 진행 상태와 결과를 조회합니다. 완료된 결과와 함께 해석 실패 또는 결과 없음에 대한 안내를 반환합니다."
       x-source-row: 60
       security:
         - null
@@ -3561,11 +3068,8 @@ paths:
       - 피팅
       summary: 피팅 작업 생성
       operationId: postApiVton
-      description: '202 응답 후 상품 조회·이미지 합성을 비동기로 수행하고 완료·실패 알림을 전송합니다. photoId 생략 또는 null이면 기본 아바타를 사용합니다. 상품
-        ID는 중복 제거하며 상의·하의·아우터·신발·모자 카테고리별 하나만 허용합니다. 카테고리 중복 등 합성 중 오류는 FAILED 상태로 조회합니다.
+      description: "상품 목록으로 가상 피팅을 비동기로 생성하고 완료·실패 알림을 전송합니다. photoId를 생략하거나 null로 전달하면 기본 아바타를 사용합니다."
 
-
-        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3629,10 +3133,8 @@ paths:
       - 피팅
       summary: 사용자 전신 사진 등록
       operationId: postVtonPhotos
-      description: 'PNG/JPEG/JPG/WEBP 이미지를 최대 15 MiB(15 × 1024 × 1024 바이트)까지 업로드합니다. 유효한 이미지를 PNG로 변환해 저장합니다.
+      description: "사용자의 전신 사진을 업로드하고 사진 ID를 발급합니다. PNG/JPEG/JPG/WEBP를 최대 15 MiB까지 받아 PNG로 저장합니다."
 
-
-        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3690,10 +3192,8 @@ paths:
       - 피팅
       summary: 사용자 전신 사진 조회
       operationId: getVtonPhoto
-      description: '본인의 전신 사진을 PNG로 반환합니다.
+      description: "현재 사용자가 등록한 전신 사진을 PNG 이미지로 반환합니다."
 
-
-        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3740,10 +3240,8 @@ paths:
       - 피팅
       summary: 피팅 결과 상세 조회
       operationId: getVtonFitting
-      description: 'PENDING/COMPLETED/FAILED 상태와 결과 이미지 URL, 실패 메시지, 상품 목록을 조회합니다.
+      description: "본인의 피팅 진행 상태와 결과 이미지 URL, 실패 메시지, 사용 상품을 조회합니다."
 
-
-        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3787,10 +3285,8 @@ paths:
       - 피팅
       summary: 피팅 기록 삭제
       operationId: deleteVtonFitting
-      description: '본인의 피팅 기록을 소프트 삭제합니다. 이후 상세·이미지·내부 조회는 404를 반환합니다.
+      description: "본인의 피팅 기록을 소프트 삭제합니다. 삭제 후에는 상세 정보와 이미지를 조회할 수 없습니다."
 
-
-        게이트웨이 호출 시 Bearer 토큰이 필요합니다. 서비스 직접 호출 시 양의 정수 X-User-Id 헤더를 전달합니다.'
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3838,7 +3334,8 @@ paths:
       - 피팅
       summary: 피팅 결과 PNG 이미지 조회
       operationId: getVtonFittingImage
-      description: 서비스에서 인증·소유권을 검사하지 않습니다. COMPLETED 상태의 이미지를 inline으로 반환합니다.
+      description: "완료된 피팅의 결과를 PNG 이미지로 반환합니다. 서비스 자체의 인증·소유권 검사는 없습니다."
+
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3869,8 +3366,8 @@ paths:
       - 피팅
       summary: '[테스트용] 실시간 다중 의류 가상 피팅'
       operationId: postVtonClothingTransfer
-      description: 기본 아바타에 의류 이미지를 합성하고 PNG를 즉시 반환합니다. 서비스 인증 검사는 없습니다. categories_json은 JSON 배열 문자열 또는 쉼표 구분
-        문자열이며 상의·하의·아우터·신발·모자를 중복 없이 1~5개 지정합니다. 이미지 개수와 순서가 카테고리와 일치해야 하며 파일당 최대 15 MiB입니다.
+      description: "의류 이미지를 기본 아바타에 합성해 PNG로 즉시 반환하는 테스트용 API입니다. 카테고리 순서에 맞춰 최대 5개 이미지를 전달합니다."
+
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3933,7 +3430,8 @@ paths:
       - 피팅
       summary: '[구현 준비용] 피팅 작업 ID 발급'
       operationId: postVtonJobs
-      description: UUID 작업 ID와 QUEUED를 반환하는 스텁입니다. 실제 작업 큐·DB·이미지 생성과 연동되지 않습니다. 서비스 인증 검사는 없습니다.
+      description: "작업 UUID와 QUEUED 상태를 반환하는 스텁 API입니다. 실제 작업 큐나 이미지 생성에는 연결되지 않습니다."
+
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -3988,14 +3486,7 @@ paths:
         - 내부 통신
       summary: 추천용 프로필 조회
       operationId: getInternalUsersUserIdBody
-      description: |-
-        미입력 항목은 제외하고 반환
-
-        호출: 추천(경민) → 제공: 회원(지현) / FR-PRF-01 / X-Internal-Token 헤더 필수 — 없거나 다르면 401
-
-        시트 요청 표기: Path: userId
-
-        시트 응답 표기: 200 { 입력된 항목만 }
+      description: "추천에 사용할 사용자 신체 정보를 조회합니다. 입력하지 않은 항목은 제외합니다."
       x-source-row: 71
       security:
         - internalToken: []
@@ -4050,14 +3541,7 @@ paths:
         - 내부 통신
       summary: 닉네임 일괄 조회
       operationId: getInternalUsers
-      description: |-
-        게시글·댓글 작성자 표시용. 없는 사용자는 결과에서 제외. 한 번에 최대 100명(넘으면 400) — 커뮤니티는 100명씩 나눠 호출
-
-        호출: 커뮤니티(지현) → 제공: 회원(지현) / FR-COM-01, 02, 05 / X-Internal-Token 헤더 필수 — 없거나 다르면 401
-
-        시트 요청 표기: Query: userIds (쉼표 구분)
-
-        시트 응답 표기: 200 [{ userId, nickname }]
+      description: "게시글과 댓글의 작성자 표시에 필요한 닉네임을 최대 100명까지 일괄 조회합니다. 없는 사용자는 제외합니다."
       x-source-row: 72
       security:
         - internalToken: []
@@ -4100,21 +3584,7 @@ paths:
         - 내부 통신
       summary: 알림 이벤트 수신
       operationId: postInternalNotificationsEvents
-      description: >-
-        eventId로 중복 알림 방지, 알림 저장 후 접속 중인 사용자에게 SSE로 전송
-
-
-        호출: 커뮤니티(지현), 피팅(경민) → 제공: 알림(지현) / FR-NOT-01~04
-
-
-        시트 요청 표기: Body: eventId, type(COMMENT/VOTE_CLOSED/FITTING_DONE/FITTING_FAILED), userId, targetId,
-        content
-
-
-        시트 응답 표기: 202
-
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "알림 이벤트를 저장하고 접속 중인 사용자에게 SSE로 전송합니다. eventId로 중복 알림을 방지합니다."
       x-source-row: 73
       security: []
       responses:
@@ -4157,16 +3627,7 @@ paths:
         - 내부 통신
       summary: 상품 요약 일괄 조회
       operationId: getInternalProducts
-      description: |-
-        스냅샷·표시용 상품 정보
-
-        호출: 커뮤니티(지현), 추천·피팅(경민) → 제공: 상품(주희)
-
-        시트 요청 표기: Query: productIds (쉼표 구분)
-
-        시트 응답 표기: 200 [{ productId, productName, brandName, price, imageUrl, status }]
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "상품 ID 목록에 해당하는 상품 요약 정보를 일괄 조회합니다."
       x-source-row: 74
       security: []
       responses:
@@ -4210,16 +3671,7 @@ paths:
         - 내부 통신
       summary: 상품 실측 조회
       operationId: getInternalProductsMeasurements
-      description: |-
-        사이즈 사전 필터용
-
-        호출: 추천(경민) → 제공: 상품(주희) / FR-REC-02
-
-        시트 요청 표기: Query: productIds (쉼표 구분)
-
-        시트 응답 표기: 200 [{ productId, subcategory, fitType, options: [{ optionId, size, measurement }] }]
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "사이즈 필터링에 필요한 상품 옵션과 실측 정보를 조회합니다."
       x-source-row: 75
       security: []
       responses:
@@ -4270,16 +3722,7 @@ paths:
         - 내부 통신
       summary: 찜 소유 확인
       operationId: getInternalWishlistsCheck
-      description: |-
-        투표 게시글의 찜 선택지 검증용
-
-        호출: 커뮤니티(지현) → 제공: 찜(주희) / FR-COM-06
-
-        시트 요청 표기: Query: userId, itemType, itemId
-
-        시트 응답 표기: 200 { owned }
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "투표 선택지 검증을 위해 사용자가 해당 상품 또는 코디를 찜했는지 확인합니다."
       x-source-row: 76
       security: []
       responses:
@@ -4316,16 +3759,7 @@ paths:
         - 내부 통신
       summary: 월드컵 결과 조회
       operationId: getInternalWorldcupsWorldcupHistoryId
-      description: |-
-        커뮤니티 공유 초안용
-
-        호출: 커뮤니티(지현) → 제공: 월드컵(주희) / FR-COM-04
-
-        시트 요청 표기: Path: worldcupHistoryId / Query: userId
-
-        시트 응답 표기: 200 { owned, product: { productId, productName, price, imageUrl }, completedAt }
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "커뮤니티 공유에 사용할 월드컵 결과와 사용자의 소유 여부를 조회합니다."
       x-source-row: 77
       security: []
       responses:
@@ -4373,16 +3807,7 @@ paths:
         - 내부 통신
       summary: 주문 항목 조회
       operationId: getInternalOrderItemsOrderItemId
-      description: |-
-        사이즈 설문 작성 검증용
-
-        호출: 설문(지현) → 제공: 주문(주희) / FR-ORD-02
-
-        시트 요청 표기: Path: orderItemId / Query: userId
-
-        시트 응답 표기: 200 { owned, productId, optionId, orderStatus }
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "사이즈 설문 작성에 필요한 주문 항목과 사용자의 소유 여부를 조회합니다."
       x-source-row: 78
       security: []
       responses:
@@ -4422,21 +3847,7 @@ paths:
         - 내부 통신
       summary: 코디 조합 조회
       operationId: getInternalRecommendationsCombosComboId
-      description: >-
-        커뮤니티 공유·투표 선택지, 찜(COMBO) 검증용
-
-
-        호출: 커뮤니티(지현), 찜(주희) → 제공: 추천(경민) / FR-COM-04, 06, WISH-01
-
-
-        시트 요청 표기: Path: comboId / Query: userId
-
-
-        시트 응답 표기: 200 { owned, items: [{ productId, productName, price, imageUrl }], totalPrice,
-        feedbackSummary }
-
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "커뮤니티 공유와 찜 검증에 사용할 추천 코디의 구성 상품과 소유 여부를 조회합니다."
       x-source-row: 79
       security: []
       responses:
@@ -4487,16 +3898,7 @@ paths:
         - 내부 통신
       summary: 사이즈 설문 반영
       operationId: postInternalRecommendationsSizeFeedback
-      description: |-
-        선호 실측(user_preferences) 갱신
-
-        호출: 설문(지현) → 제공: 추천(경민) / FR-ORD-02, REC-02
-
-        시트 요청 표기: Body: userId, productId, optionId, sizeFeedback(SMALL/FIT/BIG)
-
-        시트 응답 표기: 202
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "사이즈 설문 결과를 반영해 추천에 사용할 사용자의 선호 실측 정보를 갱신합니다."
       x-source-row: 80
       security: []
       responses:
@@ -4551,8 +3953,8 @@ paths:
       - 내부 통신
       summary: 커뮤니티 공유용 피팅 결과 조회
       operationId: getInternalFittingsFittingId
-      description: community-service 전용. X-Service-Token으로 community 호출자를 검증합니다. userId가 소유자와 달라도 200 응답의 owned=false로
-        반환합니다. resultImageUrl은 COMPLETED 상태에서만 유효합니다. 게이트웨이를 거치지 않고 vton-service의 /fittings/{fittingId}로 직접 호출합니다.
+      description: "커뮤니티 공유를 위해 피팅의 소유 여부와 상태, 결과 이미지, 상품 목록을 조회합니다. X-Service-Token 인증이 필요합니다."
+
       externalDocs:
         description: develop 구현 확인 (2026-10-20, 17deb3f)
         url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
@@ -4589,16 +3991,7 @@ paths:
         - 내부 통신
       summary: 상품 옵션 일괄 조회
       operationId: getInternalProductOptions
-      description: |-
-        상품 옵션별 가격·색상·사이즈·판매 가능 여부 조회. 존재하지 않는 옵션은 결과에서 제외
-
-        호출: 장바구니·주문 → 제공: 상품 / 담당: 미정
-
-        시트 요청 표기: Query: optionIds (쉼표 구분)
-
-        시트 응답 표기: 200 [{ optionId, productId, productName, price, color, size, available, productStatus }]
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "상품 옵션의 가격·색상·사이즈·판매 가능 여부를 일괄 조회합니다. 없는 옵션은 제외합니다."
       x-source-row: 82
       security: []
       responses:
@@ -4646,16 +4039,7 @@ paths:
         - 운영 API
       summary: 통합 서비스 헬스 체크
       operationId: getHealth
-      description: |-
-        Spring·FastAPI를 포함한 모든 서비스가 /health 경로로 생존 상태(liveness)와 준비 상태(readiness)를 제공합니다. 내부 접근만 허용합니다.
-
-        ECS/ALB Health Check / 담당: 인프라
-
-        시트 요청 표기: -
-
-        시트 응답 표기: 200 { status: UP, liveness: UP, readiness: UP } / 503 { status: NOT_READY, liveness: UP, readiness: DOWN }
-
-        내부 접근 전용. 별도 인증 헤더와 서비스 호스트는 시트에 명시되지 않았습니다.
+      description: "서비스의 생존 상태와 준비 상태를 확인합니다. 준비되지 않은 경우 503을 반환하는 내부 운영 API입니다."
       x-source-row: 83
       security: []
       responses:
