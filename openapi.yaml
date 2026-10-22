@@ -3059,9 +3059,6 @@ paths:
       operationId: postApiVton
       description: "상품 목록으로 가상 피팅을 비동기로 생성하고 완료·실패 알림을 전송합니다. photoId를 생략하거나 null로 전달하면 기본 아바타를 사용합니다."
 
-      externalDocs:
-        description: develop 구현 확인 (2026-10-20, 17deb3f)
-        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
       security:
       - bearerAuth: []
       responses:
@@ -3131,9 +3128,6 @@ paths:
       operationId: getVtonFitting
       description: "본인의 피팅 진행 상태와 결과 이미지 URL, 실패 메시지, 사용 상품을 조회합니다."
 
-      externalDocs:
-        description: develop 구현 확인 (2026-10-20, 17deb3f)
-        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
       security:
       - bearerAuth: []
       responses:
@@ -3176,9 +3170,6 @@ paths:
       operationId: deleteVtonFitting
       description: "본인의 피팅 기록을 소프트 삭제합니다. 삭제 후에는 상세 정보와 이미지를 조회할 수 없습니다."
 
-      externalDocs:
-        description: develop 구현 확인 (2026-10-20, 17deb3f)
-        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
       security:
       - bearerAuth: []
       responses:
@@ -3218,9 +3209,6 @@ paths:
       operationId: postVtonClothingTransfer
       description: "의류 이미지를 기본 아바타에 합성해 PNG로 즉시 반환하는 테스트용 API입니다. 카테고리 순서에 맞춰 최대 5개 이미지를 전달합니다."
 
-      externalDocs:
-        description: develop 구현 확인 (2026-10-20, 17deb3f)
-        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
       security: []
       responses:
         '200':
@@ -3282,9 +3270,6 @@ paths:
       operationId: postVtonJobs
       description: "작업 UUID와 QUEUED 상태를 반환하는 스텁 API입니다. 실제 작업 큐나 이미지 생성에는 연결되지 않습니다."
 
-      externalDocs:
-        description: develop 구현 확인 (2026-10-20, 17deb3f)
-        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
       security: []
       responses:
         '202':
@@ -3805,9 +3790,6 @@ paths:
       operationId: getInternalFittingsFittingId
       description: "커뮤니티 공유를 위해 피팅의 소유 여부와 상태, 결과 이미지, 상품 목록을 조회합니다. X-Service-Token 인증이 필요합니다."
 
-      externalDocs:
-        description: develop 구현 확인 (2026-10-20, 17deb3f)
-        url: https://github.com/duckfairy-wak/fitzza_msa_finalproject/tree/17deb3f336983e46a360025623bb632906116b17/vton-service
       security:
       - vtonServiceToken: []
       responses:
