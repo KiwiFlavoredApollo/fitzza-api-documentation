@@ -3966,7 +3966,7 @@ components:
     VtonCreateRequest:
       type: object
       required:
-      - productIds
+      - items
       properties:
         photoId:
           type: integer
@@ -3974,16 +3974,29 @@ components:
           nullable: true
           default: null
           description: 본인의 전신 사진 ID. 생략/null이면 기본 아바타.
-        productIds:
+        items:
           type: array
           minItems: 1
           maxItems: 5
           items:
-            type: integer
-            format: int64
-          example:
-          - 101
-          - 201
+            type: object
+            required:
+            - productId
+            - imageUrl
+            properties:
+              productId:
+                type: integer
+                format: int64
+              imageUrl:
+                type: string
+                format: uri
+      example:
+        photoId: 12
+        items:
+        - productId: 101
+          imageUrl: https://...musinsa_green.jpg
+        - productId: 204
+          imageUrl: https://...musinsa_black.jpg
     VtonCreateResponse:
       type: object
       required:
