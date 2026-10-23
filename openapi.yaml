@@ -2976,18 +2976,22 @@ paths:
         - bearerAuth: []
       responses:
         "200":
-          description: "200 { status, searchType, tpoSummary, items: [{ ..., color, size }] (단품 0~9개), combos: [{
-            comboId, items: [{ productId, productName, price, imageUrl, color, size, fitPercent, evidence }],
-            totalPrice, passStatus, harmonyScore, feedbackSummary, budgetExceeded }] (코디 2개), message }"
+          description: 추천 요청 상태와 결과.
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  requestId:
+                    type: integer
+                    format: int64
+                    example: 1
                   status:
                     type: string
+                    example: DONE
                   searchType:
                     type: string
+                    example: coordination
                   tpoSummary:
                     type: string
                   items:
@@ -2995,9 +2999,34 @@ paths:
                     items:
                       type: object
                       properties:
+                        productId:
+                          type: integer
+                          format: int64
+                        productName:
+                          type: string
+                        brandName:
+                          type: string
+                        category:
+                          type: string
+                        subcategory:
+                          type: string
+                        price:
+                          type: number
+                        imageUrl:
+                          type: string
+                          format: uri
+                          example: https://example.com
                         color:
                           type: string
-                        size:
+                        recommendedSize:
+                          type: string
+                        availableSizes:
+                          type: array
+                          items:
+                            type: string
+                        fitPercent:
+                          type: number
+                        evidence:
                           type: string
                     maxItems: 9
                   combos:
@@ -3018,15 +3047,26 @@ paths:
                                 format: int64
                               productName:
                                 type: string
+                              brandName:
+                                type: string
+                              category:
+                                type: string
+                              subcategory:
+                                type: string
                               price:
                                 type: number
                               imageUrl:
                                 type: string
                                 format: uri
+                                example: https://example.com
                               color:
                                 type: string
-                              size:
+                              recommendedSize:
                                 type: string
+                              availableSizes:
+                                type: array
+                                items:
+                                  type: string
                               fitPercent:
                                 type: number
                               evidence:
@@ -3035,6 +3075,7 @@ paths:
                           type: number
                         passStatus:
                           type: string
+                          example: PASS
                         harmonyScore:
                           type: number
                         feedbackSummary:
