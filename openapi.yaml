@@ -2806,6 +2806,101 @@ paths:
           schema:
             type: integer
             format: int64
+  /recommendations/personalized:
+    get:
+      tags:
+        - 추천
+      summary: 홈 개인화 추천 상품 조회
+      operationId: getApiRecommendationsPersonalized
+      description: >-
+        회원은 월드컵 우승 상품·찜·장바구니·최근 구매 이력을 반영한 개인화 추천을, 비회원은 기본 추천을 조회합니다.
+        상의·하의·아우터·신발·모자를 교차 배치하며 회원의 구매 완료 상품은 제외합니다.
+      externalDocs:
+        description: 프론트엔드 이슈 #65
+        url: https://github.com/GledoubleN/fitzza-frontend/issues/65
+      security:
+        - {}
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: 페이지 번호 (0부터 시작).
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          description: 페이지당 상품 개수.
+          schema:
+            type: integer
+            default: 20
+            maximum: 50
+        - name: refresh
+          in: query
+          required: false
+          description: 캐시 무효화 및 강제 새로고침 여부.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: 추천 상품 목록과 무한 스크롤 페이징 정보.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        productId:
+                          type: integer
+                          format: int64
+                        productName:
+                          type: string
+                        brandName:
+                          type: string
+                        price:
+                          type: number
+                        thumbnailUrl:
+                          type: string
+                          format: uri
+                        status:
+                          type: string
+                        category:
+                          type: string
+                        wished:
+                          type: boolean
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    format: int64
+                  totalPages:
+                    type: integer
+                  hasNext:
+                    type: boolean
+              example:
+                content:
+                  - productId: 1024
+                    productName: 베이직 오버핏 맨투맨
+                    brandName: 무신사 스탠다드
+                    price: 39900
+                    thumbnailUrl: https://image.msscdn.net/images/goods_img/...
+                    status: ON_SALE
+                    category: 상의
+                    wished: true
+                page: 0
+                size: 20
+                totalElements: 80
+                totalPages: 4
+                hasNext: true
   /recommendations:
     post:
       tags:
