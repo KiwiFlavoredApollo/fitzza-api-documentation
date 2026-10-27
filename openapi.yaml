@@ -3058,6 +3058,62 @@ paths:
           required: false
           schema:
             type: integer
+  /recommendations/{productId}/size:
+    get:
+      tags:
+        - 추천
+      summary: 상품 추천 사이즈 조회
+      operationId: getApiRecommendationsProductIdSize
+      description: "상품의 맞춤 사이즈를 조회합니다. 신체 정보 미등록, FREE 단일 사이즈 또는 실측 정보 부재 시에도 200 응답과 함께 추천값은 null, evidence는 상황별 안내 문구로 반환합니다."
+      externalDocs:
+        description: 프론트엔드 이슈 #64
+        url: https://github.com/GledoubleN/fitzza-frontend/issues/64
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: 조회할 상품 ID.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: 추천 사이즈와 적합도 또는 추천 불가 안내.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - recommendedSize
+                  - fitPercent
+                  - evidence
+                properties:
+                  recommendedSize:
+                    type: string
+                    nullable: true
+                    description: 추천 사이즈. 추천 불가 시 null.
+                  fitPercent:
+                    type: number
+                    nullable: true
+                    description: 사이즈 적합도. 추천 불가 시 null.
+                  evidence:
+                    type: string
+                    description: 추천 근거 또는 추천 불가 사유에 따른 안내 문구.
+              examples:
+                recommended:
+                  summary: 추천 성공
+                  value:
+                    recommendedSize: L
+                    fitPercent: 92.0
+                    evidence: 유사 체형 사용자의 실측 데이터를 기준으로 추천된 사이즈입니다.
+                unavailable:
+                  summary: 신체 정보 미등록으로 추천 불가
+                  value:
+                    recommendedSize: null
+                    fitPercent: null
+                    evidence: 체형 정보를 등록하시면 맞춤 사이즈를 추천해 드립니다.
   /recommendations/{requestId}:
     get:
       tags:
